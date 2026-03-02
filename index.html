@@ -3,92 +3,126 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GitHub 自動訂餐系統</title>
+    <title>校園訂餐系統</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-50 min-h-screen p-4">
-    <div class="max-w-md mx-auto bg-white shadow-lg rounded-2xl p-6">
-        <h1 class="text-2xl font-bold text-slate-800 mb-2">午餐訂購</h1>
-        <div id="status-tag" class="text-xs inline-block px-2 py-1 rounded mb-6 font-bold">讀取中...</div>
-
-        <div class="space-y-4 mb-8">
-            <select id="seat-select" onchange="updateBalance()" class="w-full p-3 border rounded-xl bg-gray-50 outline-none focus:ring-2 focus:ring-blue-400">
-                <option value="">-- 請選擇座號 --</option>
-            </select>
-            <div class="flex justify-between items-center px-2">
-                <span class="text-slate-500">當前餘額</span>
-                <span id="balance-val" class="text-xl font-black text-blue-600">$ --</span>
-            </div>
+<body class="bg-slate-100 min-h-screen p-4">
+    <div class="max-w-md mx-auto bg-white shadow-xl rounded-3xl overflow-hidden">
+        <div class="bg-blue-600 p-6 text-white">
+            <h1 class="text-2xl font-bold">線上訂餐系統</h1>
+            <div id="status-tag" class="mt-2 text-xs inline-block px-2 py-1 rounded bg-blue-500/50">連線中...</div>
         </div>
 
-        <div id="menu-list" class="space-y-3 mb-8"></div>
+        <div class="p-6 space-y-6">
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-500 mb-1">座號</label>
+                    <select id="seat-select" onchange="updateBalance()" class="w-full p-3 border rounded-xl bg-gray-50 outline-none focus:ring-2 focus:ring-blue-400 text-lg">
+                        <option value="">載入中...</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-500 mb-1">當前餘額</label>
+                    <div id="balance-val" class="text-2xl font-black text-blue-600 p-2">$ --</div>
+                </div>
+            </div>
 
-        <div class="grid grid-cols-2 gap-3">
-            <button onclick="sendOrder()" class="bg-blue-600 text-white font-bold py-3 rounded-xl shadow-lg active:scale-95 transition">送出訂單</button>
-            <button onclick="cancelOrder()" class="bg-red-50 text-red-500 font-bold py-3 rounded-xl border border-red-100 active:scale-95 transition">取消當日訂單</button>
+            <hr class="border-gray-100">
+
+            <div>
+                <h2 class="font-bold text-gray-700 mb-3">今日菜單</h2>
+                <div id="menu-list" class="space-y-2">
+                    </div>
+            </div>
+
+            <div class="flex flex-col gap-3 pt-4">
+                <button onclick="sendOrder()" class="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-lg active:scale-95 transition-all text-lg">確認送出</button>
+                <button onclick="cancelOrder()" class="w-full bg-white text-red-500 font-semibold py-3 rounded-2xl border border-red-100 active:scale-95 transition-all">取消今日訂單</button>
+            </div>
         </div>
     </div>
 
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbzbQYBYyKi_sDdd-LKv5fasV0PUXXNAN7a9RTsnS9Dq_SBgUmO0vpb7a0dx2B8DFVt2oA/exec"; // 務必替換此處
-        let globalData = {};
+        const API_URL = "https://script.google.com/macros/s/AKfycbzbQYBYyKi_sDdd-LKv5fasV0PUXXNAN7a9RTsnS9Dq_SBgUmO0vpb7a0dx2B8DFVt2oA/exec"; // 在此處貼上網址
+        let globalData = { balances: {}, menu: [] };
         let selectedItem = null;
 
         async function init() {
-            const res = await fetch(API_URL);
-            globalData = await response = await res.json();
-            
-            // 更新狀態標籤
-            const isUpdated = globalData.lastUpdated === new Date().toISOString().split('T');
-            const tag = document.getElementById('status-tag');
-            tag.innerText = isUpdated ? "今日菜單已更新" : "菜單尚未更新";
-            tag.className += isUpdated ? " bg-green-100 text-green-600" : " bg-amber-100 text-amber-600";
+            try {
+                const res = await fetch(API_URL);
+                const data = await res.json();
+                globalData = data;
 
-            // 填充座號
-            const select = document.getElementById('seat-select');
-            Object.keys(globalData.balances).forEach(s => {
-                select.innerHTML += `<option value="${s}">座號 ${s}</option>`;
-            });
+                // 1. 更新狀態與日期標籤
+                const today = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD
+                const isUpdated = globalData.lastUpdated === today;
+                const tag = document.getElementById('status-tag');
+                tag.innerText = isUpdated ? `菜單已更新 (${globalData.lastUpdated})` : `尚未更新 (舊菜單: ${globalData.lastUpdated})`;
+                tag.className = isUpdated ? "mt-2 text-xs inline-block px-2 py-1 rounded bg-green-500" : "mt-2 text-xs inline-block px-2 py-1 rounded bg-orange-500";
 
-            // 生成菜單
-            const menuBox = document.getElementById('menu-list');
-            globalData.menu.forEach(item => {
-                const div = document.createElement('div');
-                div.className = "flex justify-between items-center p-4 border rounded-xl cursor-pointer hover:bg-blue-50 transition";
-                div.onclick = () => {
-                    selectedItem = item;
-                    document.querySelectorAll('#menu-list div').forEach(d => d.classList.remove('border-blue-500', 'bg-blue-50'));
-                    div.classList.add('border-blue-500', 'bg-blue-50');
-                };
-                div.innerHTML = `<span>${item.name}</span><span class="font-bold">$${item.price}</span>`;
-                menuBox.appendChild(div);
-            });
+                // 2. 渲染座號選單
+                const select = document.getElementById('seat-select');
+                select.innerHTML = '<option value="">選擇座號</option>';
+                Object.keys(globalData.balances).sort((a,b)=>a-b).forEach(s => {
+                    select.innerHTML += `<option value="${s}">座號 ${s}</option>`;
+                });
+
+                // 3. 渲染菜單
+                const menuBox = document.getElementById('menu-list');
+                menuBox.innerHTML = '';
+                globalData.menu.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = "flex justify-between items-center p-4 border rounded-2xl cursor-pointer hover:bg-blue-50 transition-all border-gray-100";
+                    div.onclick = () => {
+                        selectedItem = item;
+                        document.querySelectorAll('#menu-list div').forEach(d => d.classList.remove('border-blue-500', 'bg-blue-50', 'ring-2', 'ring-blue-100'));
+                        div.classList.add('border-blue-500', 'bg-blue-50', 'ring-2', 'ring-blue-100');
+                    };
+                    div.innerHTML = `<span class="font-medium">${item.name}</span><span class="font-bold text-gray-700">$${item.price}</span>`;
+                    menuBox.appendChild(div);
+                });
+
+            } catch (e) {
+                console.error(e);
+                alert("資料讀取失敗，請檢查 API 設定");
+            }
         }
 
         function updateBalance() {
             const seat = document.getElementById('seat-select').value;
-            document.getElementById('balance-val').innerText = seat ? `$ ${globalData.balances[seat]}` : "$ --";
+            const balance = globalData.balances[seat];
+            document.getElementById('balance-val').innerText = seat ? `$ ${balance}` : "$ --";
         }
 
         async function sendOrder() {
             const seat = document.getElementById('seat-select').value;
-            if(!seat || !selectedItem) return alert("請選座號及餐點！");
-            if(selectedItem.price > globalData.balances[seat]) return alert("餘額不足，請先儲值！");
+            if(!seat || !selectedItem) return alert("請先選擇座號與餐點！");
+            
+            if(selectedItem.price > globalData.balances[seat]) {
+                return alert(`餘額不足！你的餘額 $${globalData.balances[seat]} 無法購買 $${selectedItem.price} 的餐點。`);
+            }
 
-            if(!confirm(`確認訂購 ${selectedItem.name}？`)) return;
+            if(!confirm(`確認訂購「${selectedItem.name}」嗎？`)) return;
 
-            const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'order', seat, item: selectedItem.name, price: selectedItem.price })});
+            const res = await fetch(API_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action: 'order', seat, item: selectedItem.name, price: selectedItem.price })
+            });
             alert(await res.text());
             location.reload();
         }
 
         async function cancelOrder() {
             const seat = document.getElementById('seat-select').value;
-            if(!seat) return alert("請先選擇座號");
-            if(!confirm("確定要取消今日最後一筆訂單？")) return;
+            if(!seat) return alert("請選擇座號以利查詢訂單");
+            if(!confirm("確定要取消今日的最後一筆訂單嗎？")) return;
 
-            const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'cancel', seat })});
+            const res = await fetch(API_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action: 'cancel', seat })
+            });
             alert(await res.text());
+            location.reload();
         }
 
         init();
