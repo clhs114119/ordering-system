@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub 自動訂餐系統</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 min-h-screen p-4">
+    <div class="max-w-md mx-auto bg-white shadow-lg rounded-2xl p-6">
+        <h1 class="text-2xl font-bold text-slate-800 mb-2">午餐訂購</h1>
+        <div id="status-tag" class="text-xs inline-block px-2 py-1 rounded mb-6 font-bold">讀取中...</div>
+
+        <div class="space-y-4 mb-8">
+            <select id="seat-select" onchange="updateBalance()" class="w-full p-3 border rounded-xl bg-gray-50 outline-none focus:ring-2 focus:ring-blue-400">
+                <option value="">-- 請選擇座號 --</option>
+            </select>
+            <div class="flex justify-between items-center px-2">
+                <span class="text-slate-500">當前餘額</span>
+                <span id="balance-val" class="text-xl font-black text-blue-600">$ --</span>
+            </div>
+        </div>
+
+        <div id="menu-list" class="space-y-3 mb-8"></div>
+
+        <div class="grid grid-cols-2 gap-3">
+            <button onclick="sendOrder()" class="bg-blue-600 text-white font-bold py-3 rounded-xl shadow-lg active:scale-95 transition">送出訂單</button>
+            <button onclick="cancelOrder()" class="bg-red-50 text-red-500 font-bold py-3 rounded-xl border border-red-100 active:scale-95 transition">取消當日訂單</button>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbzbQYBYyKi_sDdd-LKv5fasV0PUXXNAN7a9RTsnS9Dq_SBgUmO0vpb7a0dx2B8DFVt2oA/exec"; // 務必替換此處
+        let globalData = {};
+        let selectedItem = null;
+
+        async function init() {
+            const res = await fetch(API_URL);
+            globalData = await response = await res.json();
+            
+            // 更新狀態標籤
+            const isUpdated = globalData.lastUpdated === new Date().toISOString().split('T');
+            const tag = document.getElementById('status-tag');
+            tag.innerText = isUpdated ? "今日菜單已更新" : "菜單尚未更新";
+            tag.className += isUpdated ? " bg-green-100 text-green-600" : " bg-amber-100 text-amber-600";
+
+            // 填充座號
+            const select = document.getElementById('seat-select');
+            Object.keys(globalData.balances).forEach(s => {
+                select.innerHTML += `<option value="${s}">座號 ${s}</option>`;
+            });
+
+            // 生成菜單
+            const menuBox = document.getElementById('menu-list');
+            globalData.menu.forEach(item => {
+                const div = document.createElement('div');
+                div.className = "flex justify-between items-center p-4 border rounded-xl cursor-pointer hover:bg-blue-50 transition";
+                div.onclick = () => {
+                    selectedItem = item;
+                    document.querySelectorAll('#menu-list div').forEach(d => d.classList.remove('border-blue-500', 'bg-blue-50'));
+                    div.classList.add('border-blue-500', 'bg-blue-50');
+                };
+                div.innerHTML = `<span>${item.name}</span><span class="font-bold">$${item.price}</span>`;
+                menuBox.appendChild(div);
+            });
+        }
+
+        function updateBalance() {
+            const seat = document.getElementById('seat-select').value;
+            document.getElementById('balance-val').innerText = seat ? `$ ${globalData.balances[seat]}` : "$ --";
+        }
+
+        async function sendOrder() {
+            const seat = document.getElementById('seat-select').value;
+            if(!seat || !selectedItem) return alert("請選座號及餐點！");
+            if(selectedItem.price > globalData.balances[seat]) return alert("餘額不足，請先儲值！");
+
+            if(!confirm(`確認訂購 ${selectedItem.name}？`)) return;
+
+            const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'order', seat, item: selectedItem.name, price: selectedItem.price })});
+            alert(await res.text());
+            location.reload();
+        }
+
+        async function cancelOrder() {
+            const seat = document.getElementById('seat-select').value;
+            if(!seat) return alert("請先選擇座號");
+            if(!confirm("確定要取消今日最後一筆訂單？")) return;
+
+            const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'cancel', seat })});
+            alert(await res.text());
+        }
+
+        init();
+    </script>
+</body>
+</html>
