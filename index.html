@@ -58,26 +58,29 @@
     </style>
 
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbzbQYBYyKi_sDdd-LKv5fasV0PUXXNAN7a9RTsnS9Dq_SBgUmO0vpb7a0dx2B8DFVt2oA/exec"; // 👈 替換為您的 GAS 部署網址
+        // 請確保此網址正確且無空格
+        const API_URL = "https://script.google.com/macros/s/AKfycbzbQYBYyKi_sDdd-LKv5fasV0PUXXNAN7a9RTsnS9Dq_SBgUmO0vpb7a0dx2B8DFVt2oA/exec";
+        
         let globalData = { balances: {}, menu: [] };
         let selectedItems = [];
 
-        // 初始化：讀取資料與渲染
         async function init() {
             try {
                 const res = await fetch(API_URL);
                 const data = await res.json();
                 globalData = data;
                 
-                // 1. 渲染座號選單 (精確對應 A2:A30)
+                // 1. 渲染座號選單 (A2~A30)
                 const select = document.getElementById('seat-select');
                 select.innerHTML = '<option value="">請選擇</option>';
                 
-                // 處理從 GAS 傳回的資料物件
                 const seatList = Object.keys(globalData.balances).map(key => {
-                    const cleanKey = key.replace("seat_", ""); // 移除 GAS 為了防呆加的字串
-                    return { num: Number(cleanKey), balance: globalData.balances[key].value || globalData.balances[key] };
-                }).sort((a, b) => a.num - b.num); // 強制由小到大排序
+                    const cleanKey = key.replace("seat_", "");
+                    return { 
+                        num: Number(cleanKey), 
+                        balance: globalData.balances[key].value || globalData.balances[key] 
+                    };
+                }).sort((a, b) => a.num - b.num);
 
                 seatList.forEach(item => {
                     if (item.num > 0) {
@@ -100,7 +103,7 @@
                     menuBox.appendChild(div);
                 });
 
-                // 3. 更新日期狀態
+                // 3. 更新日期狀態標籤
                 const today = new Date().toLocaleDateString('en-CA');
                 const isUpdated = globalData.lastUpdated === today;
                 const tag = document.getElementById('status-tag');
@@ -109,11 +112,10 @@
 
             } catch (e) {
                 console.error(e);
-                alert("讀取失敗，請確認 GAS API 網址是否正確，並已部署為『任何人』可存取。");
+                alert("讀取失敗，請確認 GAS API 網址並重新部署。");
             }
         }
 
-        // 選擇/取消餐點邏輯 (複選)
         function toggleItem(item, div) {
             const idx = selectedItems.findIndex(i => i.id === item.id);
             if(idx > -1) {
@@ -124,28 +126,23 @@
                 div.className = "flex justify-between items-center p-4 border-2 border-blue-500 rounded-2xl cursor-pointer bg-blue-50 transition-all shadow-sm";
             }
             
-            // 計算總金額與提示
             const total = selectedItems.reduce((s, i) => s + Number(i.price), 0);
             document.getElementById('total-amount').innerText = `$ ${total}`;
             document.getElementById('selected-items-hint').innerText = 
                 selectedItems.length > 0 ? `已選: ${selectedItems.map(i=>i.name).join(', ')}` : "尚未選擇餐點";
         }
 
-        // 更新餘額顯示
         function updateBalanceDisplay() {
             const seat = document.getElementById('seat-select').value;
             if (seat) {
-                // 從原始資料中找餘額 (注意 GAS 傳回的結構)
-                const bal = globalData.balances["seat_" + seat] ? 
-                            (globalData.balances["seat_" + seat].value || globalData.balances["seat_" + seat]) : 
-                            globalData.balances[seat];
+                const balData = globalData.balances["seat_" + seat];
+                const bal = balData ? (balData.value !== undefined ? balData.value : balData) : 0;
                 document.getElementById('balance-val').innerText = `$ ${bal}`;
             } else {
                 document.getElementById('balance-val').innerText = "$ --";
             }
         }
 
-        // 送出訂單
         async function sendOrder() {
             const seat = document.getElementById('seat-select').value;
             const total = selectedItems.reduce((s, i) => s + Number(i.price), 0);
@@ -153,7 +150,6 @@
             if(!seat) return alert("請先選取您的座號！");
             if(selectedItems.length === 0) return alert("請至少選擇一項餐點！");
             
-            // 簡易餘額檢查
             const currentBalance = Number(document.getElementById('balance-val').innerText.replace("$ ", ""));
             if(total > currentBalance) return alert(`餘額不足！總計 $${total}，您的餘額為 $${currentBalance}`);
 
@@ -183,7 +179,6 @@
             }
         }
 
-        // 取消今日所有訂單 (12:00 前)
         async function cancelAllOrders() {
             const now = new Date();
             if (now.getHours() >= 12) {
@@ -213,7 +208,3 @@
     </script>
 </body>
 </html>
-
-
-
-
