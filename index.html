@@ -258,7 +258,7 @@
             const isUnlocked = globalData.emergencyUnlocked === true;
 
             if (isUnlocked) {
-                tag.innerText = "管理員解鎖中";
+                tag.innerText = "下單暫時解鎖";
                 tag.style.backgroundColor = "rgba(168, 85, 247, 0.5)"; 
                 orderBtn.classList.remove('disabled-btn');
                 if (now.getHours() >= 12) cancelBtn.innerText = "取消我今日所有訂單 (限 12:00 後)";
