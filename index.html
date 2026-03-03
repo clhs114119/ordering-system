@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>119定餐系統 V3.3.4 Beta3</title>
+    <title>119定餐系統 V3.3.5 Beta3</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
@@ -24,7 +24,7 @@
     <div id="side-menu" class="fixed top-0 left-0 h-full w-64 bg-white z-50 shadow-2xl transform -translate-x-full">
         <div class="p-8 bg-blue-600 text-white">
             <h2 class="text-xl font-black italic">119 System</h2>
-            <p class="text-[10px] opacity-60 tracking-widest">V3.3.4 Beta3</p>
+            <p class="text-[10px] opacity-60 tracking-widest">V3.3.5 Beta3</p>
         </div>
         <nav class="p-4 space-y-2">
             <button onclick="switchPage('order')" class="w-full text-left p-4 hover:bg-blue-50 rounded-2xl font-bold text-gray-700 flex items-center gap-3">🍱 訂餐介面</button>
@@ -91,11 +91,18 @@
             </div>
 
             <div id="admin-content" class="hidden space-y-6">
+                <div class="bg-white p-5 rounded-3xl shadow-sm space-y-4 border-2 border-orange-100">
+                    <h3 class="font-black text-orange-700 border-b pb-2">⚠️ 緊急權限</h3>
+                    <p class="text-[10px] text-orange-400">解除今日 12:00 限制。解鎖後可繼續訂餐，且僅可取消「解鎖後」產生的訂單。</p>
+                    <button onclick="triggerEmergencyUnlock()" class="w-full bg-orange-500 text-white py-3 rounded-xl font-bold active:scale-95 transition-all">解除今日 12:00 限制</button>
+                </div>
+
                 <div class="bg-white p-5 rounded-3xl shadow-sm space-y-4">
                     <h3 class="font-black text-gray-700 border-b pb-2">🍱 修改價格</h3>
                     <div id="admin-menu-edit" class="space-y-2 max-h-40 overflow-y-auto custom-scrollbar"></div>
                     <button onclick="updateMenu()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold">更新菜單</button>
                 </div>
+
                 <div class="bg-white p-5 rounded-3xl shadow-sm space-y-4 border-2 border-green-100">
                     <h3 class="font-black text-green-700 border-b pb-2">💰 用戶加值</h3>
                     <select id="recharge-seat" onchange="calcRecharge()" class="w-full p-3 rounded-xl border border-gray-200 font-bold"></select>
@@ -106,6 +113,7 @@
                     </div>
                     <button id="recharge-btn" onclick="rechargeUser()" disabled class="w-full bg-gray-300 text-white py-3 rounded-xl font-bold">確認加值</button>
                 </div>
+
                 <div class="bg-white p-5 rounded-3xl shadow-sm space-y-4">
                     <h3 class="font-black text-gray-700 border-b pb-2">🔑 修改密鑰</h3>
                     <input type="text" id="new-key-input" class="w-full p-3 rounded-xl border border-gray-200" placeholder="新密鑰">
@@ -119,6 +127,7 @@
         const API_URL = "https://script.google.com/macros/s/AKfycbzbQYBYyKi_sDdd-LKv5fasV0PUXXNAN7a9RTsnS9Dq_SBgUmO0vpb7a0dx2B8DFVt2oA/exec";
         let globalData = {};
         let selectedItems = [];
+        let adminKey = ""; // 用於暫存驗證後的管理密鑰
 
         async function init() {
             try {
@@ -129,7 +138,6 @@
         }
 
         function renderBaseUI() {
-            // 渲染座號與選單
             const seatSelects = [document.getElementById('seat-select'), document.getElementById('recharge-seat')];
             seatSelects.forEach(s => {
                 s.innerHTML = '<option value="">請選擇座號</option>';
@@ -149,7 +157,6 @@
                 menuBox.appendChild(div);
             });
 
-            // 今日統計表格
             const tableBody = document.getElementById('stats-table-body');
             tableBody.innerHTML = "";
             for (let i = 1; i < 16; i++) {
@@ -161,13 +168,11 @@
             document.getElementById('total-qty').innerText = globalData.stats[16]?.qty || 0;
             document.getElementById('total-sum').innerText = `$ ${globalData.stats[16]?.total || 0}`;
 
-            // 更新標籤
             const today = new Date().toLocaleDateString('en-CA');
             const tag = document.getElementById('status-tag');
             tag.innerText = globalData.lastUpdated === today ? "今日菜單已更新" : "菜單尚未更新";
             tag.style.backgroundColor = globalData.lastUpdated === today ? "#22c55e" : "#f97316";
 
-            // 管理員菜單編輯
             const adminMenu = document.getElementById('admin-menu-edit');
             adminMenu.innerHTML = "";
             globalData.menu.forEach(item => {
@@ -210,8 +215,7 @@
             callAPI({ action: 'cancel', seat: seat });
         }
 
-        // 管理員邏輯
-        let adminKey = "";
+        // 管理員：解鎖
         function unlockAdmin() {
             const input = document.getElementById('admin-key-input').value;
             if(input === globalData.adminKey) {
@@ -219,6 +223,12 @@
                 document.getElementById('admin-login').classList.add('hidden');
                 document.getElementById('admin-content').classList.remove('hidden');
             } else { alert("密鑰錯誤"); }
+        }
+
+        // 管理員：觸發緊急解鎖
+        async function triggerEmergencyUnlock() {
+            if(!confirm("確定解除今日時間限制嗎？\n此操作將允許超時訂餐，且僅限取消解鎖後產生的訂單。")) return;
+            callAPI({ action: 'triggerUnlock', key: adminKey });
         }
 
         function calcRecharge() {
@@ -253,14 +263,13 @@
             if(nk) callAPI({ action: 'updateKey', newKey: nk, key: adminKey });
         }
 
-        // 通用 API 呼叫
         async function callAPI(payload) {
             document.getElementById('loading-screen').classList.remove('hidden');
             try {
                 const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
                 alert(await res.text());
                 location.reload();
-            } catch (e) { alert("失敗"); document.getElementById('loading-screen').classList.add('hidden'); }
+            } catch (e) { alert("連線異常"); document.getElementById('loading-screen').classList.add('hidden'); }
         }
 
         function toggleMenu() {
