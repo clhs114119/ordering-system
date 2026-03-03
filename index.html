@@ -288,7 +288,7 @@
                 selectedItems.push(item);
                 // 修改處：保持透明度與模糊，僅更換底色為半透明藍 (bg-blue-500/50) 與藍色邊框
                 // 這裡不使用 text-white，以維持原本的文字清晰度
-                div.className = "flex justify-between items-center p-4 border border-blue-400 bg-blue-500/50 rounded-2xl cursor-pointer shadow-inner transition-all";
+                div.className = "flex justify-between items-center p-4 border border-blue-400 bg-blue-500/40 rounded-2xl cursor-pointer shadow-inner transition-all";
             }
             document.getElementById('total-amount').innerText = `$ ${selectedItems.reduce((s,i)=>s+Number(i.price), 0)}`;
         }
