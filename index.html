@@ -282,12 +282,13 @@
             const idx = selectedItems.findIndex(i => i.id === item.id);
             if(idx > -1) {
                 selectedItems.splice(idx, 1);
-                div.classList.replace('border-blue-400', 'border-white/20');
-                div.classList.replace('bg-blue-50/50', 'card-bg');
+                // 回復為原本的樣式 (border-white/20 + card-bg)
+                div.className = "card-bg flex justify-between items-center p-4 border border-white/20 rounded-2xl cursor-pointer hover:bg-white/40 transition-all";
             } else {
                 selectedItems.push(item);
-                div.classList.replace('border-white/20', 'border-blue-400');
-                div.classList.replace('card-bg', 'bg-blue-50/50');
+                // 修改處：保持透明度與模糊，僅更換底色為半透明藍 (bg-blue-500/50) 與藍色邊框
+                // 這裡不使用 text-white，以維持原本的文字清晰度
+                div.className = "flex justify-between items-center p-4 border border-blue-400 bg-blue-500/50 rounded-2xl cursor-pointer shadow-inner transition-all";
             }
             document.getElementById('total-amount').innerText = `$ ${selectedItems.reduce((s,i)=>s+Number(i.price), 0)}`;
         }
