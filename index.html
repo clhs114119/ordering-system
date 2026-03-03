@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>119定餐系統 V3.2.1 Beta2</title>
+    <title>119定餐系統 V3.2.2 Beta2</title>
     <link rel="icon" href="data:,">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -19,14 +19,14 @@
     <div id="side-menu" class="fixed top-0 left-0 h-full w-64 bg-white z-50 shadow-2xl transform -translate-x-full">
         <div class="p-8 bg-blue-600 text-white">
             <h2 class="text-xl font-black">系統選單</h2>
-            <p class="text-[10px] opacity-70 tracking-widest">VERSION 3.2.1 Beta2</p>
+            <p class="text-[10px] opacity-70 tracking-widest">VERSION 3.2.2 Beta2</p>
         </div>
         <nav class="p-4 space-y-2">
             <button onclick="switchPage('order')" class="w-full text-left p-4 hover:bg-blue-50 rounded-2xl font-bold text-gray-700 flex items-center gap-3 transition-colors">
                 <span>🍱</span> 我要訂餐
             </button>
             <button onclick="switchPage('stats')" class="w-full text-left p-4 hover:bg-blue-50 rounded-2xl font-bold text-gray-700 flex items-center gap-3 transition-colors">
-                <span>📊</span> 訂單統計
+                <span>📊</span> 今日統計
             </button>
             <div class="border-t border-gray-100 my-4"></div>
             <p class="text-[10px] text-gray-300 text-center uppercase tracking-widest">更多功能開發中</p>
@@ -80,7 +80,7 @@
         </div>
 
         <div id="page-stats" class="hidden p-6 space-y-4 flex-1">
-            <h2 class="font-black text-gray-800 px-1 flex items-center gap-2">📊 今日訂購統計</h2>
+            <h2 class="font-black text-gray-800 px-1 flex items-center gap-2">📊 今日統計</h2>
             <div class="bg-white border border-gray-100 rounded-3xl overflow-hidden shadow-sm">
                 <table class="w-full text-left">
                     <thead class="bg-gray-50 text-[10px] font-bold text-gray-400 uppercase">
@@ -90,23 +90,23 @@
                             <th class="p-4 text-right">小計</th>
                         </tr>
                     </thead>
-                    <tbody id="stats-table-body" class="text-sm divide-y divide-gray-50"></tbody>
+                    <tbody id="stats-table-body" class="text-sm divide-y divide-gray-50">
+                        </tbody>
                     <tfoot class="bg-blue-50 font-black text-blue-700">
                         <tr id="stats-total-row">
-                            <td class="p-4">總計 (Total)</td>
+                            <td class="p-4">今日總結 (Total)</td>
                             <td id="total-qty" class="p-4 text-center">0</td>
                             <td id="total-sum" class="p-4 text-right">$ 0</td>
                         </tr>
                     </tfoot>
                 </table>
             </div>
-            <p class="text-[10px] text-gray-400 text-center italic">統計表引用自 Statistics 工作表 A1:C17</p>
+            <p class="text-[10px] text-gray-400 text-center italic">數據源自 Statistics 工作表 A2:C17</p>
         </div>
     </div>
 
     <script>
-        // 請在此處填入您的部署網址
-        const API_URL = "在此處貼上網址";
+        const API_URL = "https://script.google.com/macros/s/AKfycbzbQYBYyKi_sDdd-LKv5fasV0PUXXNAN7a9RTsnS9Dq_SBgUmO0vpb7a0dx2B8DFVt2oA/exec";
         
         let globalData = { balances: {}, menu: [], stats: [] };
         let selectedItems = [];
@@ -122,7 +122,7 @@
         function switchPage(page) {
             document.getElementById('page-order').classList.toggle('hidden', page !== 'order');
             document.getElementById('page-stats').classList.toggle('hidden', page !== 'stats');
-            document.getElementById('page-title').innerText = page === 'order' ? '119定餐系統' : '訂單統計';
+            document.getElementById('page-title').innerText = page === 'order' ? '119定餐系統' : '今日統計';
             toggleMenu();
         }
 
@@ -131,7 +131,7 @@
                 const res = await fetch(API_URL);
                 globalData = await res.json();
                 
-                // 1. 初始化座號選單
+                // 1. 座號
                 const select = document.getElementById('seat-select');
                 select.innerHTML = '<option value="">請選擇</option>';
                 Object.keys(globalData.balances).filter(k=>!k.includes("seat_")).sort((a,b)=>Number(a)-Number(b)).forEach(s=>{
@@ -139,7 +139,7 @@
                     select.appendChild(opt);
                 });
 
-                // 2. 初始化菜單
+                // 2. 菜單
                 const menuBox = document.getElementById('menu-list');
                 globalData.menu.forEach(item => {
                     const div = document.createElement('div');
@@ -149,29 +149,41 @@
                     menuBox.appendChild(div);
                 });
 
-                // 3. 初始化統計表 (A1 為標題，故 slice(1, 16) 抓數據列)
+                // 3. 今日統計表格 (關鍵修正：確保顯示 A2:C16)
                 const tableBody = document.getElementById('stats-table-body');
-                globalData.stats.slice(1, 16).forEach(row => {
-                    if(row.name && row.name.trim() !== ""){
-                        const tr = document.createElement('tr');
-                        tr.innerHTML = `<td class="p-4 font-bold text-gray-600">${row.name}</td><td class="p-4 text-center">${row.qty}</td><td class="p-4 text-right">$${row.total}</td>`;
-                        tableBody.appendChild(tr);
-                    }
-                });
-                const grandTotal = globalData.stats[16]; // 第 17 列總計
-                document.getElementById('total-qty').innerText = grandTotal ? grandTotal.qty : 0;
-                document.getElementById('total-sum').innerText = `$ ${grandTotal ? grandTotal.total : 0}`;
+                tableBody.innerHTML = ""; // 清空舊內容
+                
+                // 抓取 A2 到 A16 (陣列索引 1 到 15)
+                for (let i = 1; i < 16; i++) {
+                    const row = globalData.stats[i] || { name: "", qty: 0, total: 0 };
+                    // 即使沒有名稱也要顯示該格，確保表格對齊
+                    const tr = document.createElement('tr');
+                    const name = row.name || `(未設定項目 ${i})`;
+                    const qty = row.qty === "" ? 0 : row.qty;
+                    const total = row.total === "" ? 0 : row.total;
+                    
+                    tr.innerHTML = `<td class="p-4 font-bold text-gray-600">${name}</td>
+                                    <td class="p-4 text-center">${qty}</td>
+                                    <td class="p-4 text-right">$${total}</td>`;
+                    tableBody.appendChild(tr);
+                }
 
-                // 4. 更新狀態
+                // 抓取第 17 列總計 (陣列索引 16)
+                const grandTotal = globalData.stats[16] || { qty: 0, total: 0 };
+                document.getElementById('total-qty').innerText = grandTotal.qty || 0;
+                document.getElementById('total-sum').innerText = `$ ${grandTotal.total || 0}`;
+
+                // 4. 狀態
                 const today = new Date().toLocaleDateString('en-CA');
                 const isUpdated = globalData.lastUpdated === today;
                 const tag = document.getElementById('status-tag');
                 tag.innerText = isUpdated ? "今日菜單已更新" : "菜單尚未更新";
                 tag.style.backgroundColor = isUpdated ? "#22c55e" : "#f97316";
 
-            } catch (e) { alert("讀取資料失敗，請確認 API 部署狀況。"); }
+            } catch (e) { alert("讀取資料失敗，請確認 API。"); }
         }
 
+        // 其餘邏輯與上一版本完全一致
         function toggleItem(item, div) {
             const idx = selectedItems.findIndex(i => i.id === item.id);
             if(idx > -1) {
@@ -181,8 +193,7 @@
                 selectedItems.push(item);
                 div.className = "flex justify-between items-center p-4 border-2 border-blue-500 rounded-2xl cursor-pointer bg-blue-50 transition-all shadow-sm";
             }
-            const total = selectedItems.reduce((s, i) => s + Number(i.price), 0);
-            document.getElementById('total-amount').innerText = `$ ${total}`;
+            document.getElementById('total-amount').innerText = `$ ${selectedItems.reduce((s, i) => s + Number(i.price), 0)}`;
             document.getElementById('selected-items-hint').innerText = selectedItems.length > 0 ? `已選: ${selectedItems.map(i=>i.name).join(', ')}` : "尚未選擇餐點";
         }
 
@@ -196,33 +207,25 @@
             const seat = document.getElementById('seat-select').value;
             const total = selectedItems.reduce((s, i) => s + Number(i.price), 0);
             if(!seat || selectedItems.length === 0) return alert("請選取座號及餐點！");
-            
             const curBal = Number(document.getElementById('balance-val').innerText.replace("$ ", ""));
-            if(total > curBal) return alert(`餘額不足！當前僅剩 $${curBal}`);
-
-            if(!confirm(`確認為 ${seat} 號訂購餐點嗎？`)) return;
+            if(total > curBal) return alert(`餘額不足！`);
+            if(!confirm(`確認訂購？`)) return;
             const btn = document.getElementById('send-btn');
             btn.disabled = true; btn.innerText = "訂單送出中...";
-
             try {
-                const res = await fetch(API_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action: 'order', seat: seat, items: selectedItems, price: total })
-                });
-                alert(await res.text());
-                location.reload();
-            } catch (e) { alert("連線失敗"); btn.disabled = false; btn.innerText = "確認送出訂單"; }
+                await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'order', seat: seat, items: selectedItems, price: total }) });
+                alert("訂購成功！"); location.reload();
+            } catch (e) { alert("失敗"); btn.disabled = false; }
         }
 
         async function cancelAllOrders() {
-            if (new Date().getHours() >= 12) return alert("12:00 後無法取消訂單。");
+            if (new Date().getHours() >= 12) return alert("12:00 後無法取消。");
             const seat = document.getElementById('seat-select').value;
-            if(!seat || !confirm(`確定要取消 ${seat} 號今日的所有訂單？`)) return;
+            if(!seat || !confirm(`確定取消？`)) return;
             try {
                 const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'cancel', seat: seat }) });
-                alert(await res.text());
-                location.reload();
-            } catch (e) { alert("取消失敗"); }
+                alert(await res.text()); location.reload();
+            } catch (e) { alert("失敗"); }
         }
 
         init();
