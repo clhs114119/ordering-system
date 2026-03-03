@@ -3,14 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>119定餐系統 V3.1.8 Beta1</title>
+    <title>119定餐系統 V3.1.9 Beta1</title>
+    <link rel="icon" href="data:,">
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-50 min-h-screen p-4 flex justify-center font-sans">
     <div class="max-w-md w-full bg-white shadow-2xl rounded-[2.5rem] overflow-hidden border border-gray-100 flex flex-col">
         
         <div class="bg-blue-600 p-8 text-white text-center">
-            <h1 class="text-2xl font-black tracking-tight">119定餐系統 V3.1.8 Beta1</h1>
+            <h1 class="text-2xl font-black tracking-tight">119定餐系統 V3.1.9 Beta1</h1>
             <div id="status-tag" class="mt-2 text-[10px] tracking-widest uppercase px-3 py-1 rounded-full bg-white/20 inline-block">讀取數據庫資料中...</div>
         </div>
 
@@ -70,15 +71,14 @@
                 const data = await res.json();
                 globalData = data;
                 
-                // 1. 渲染座號選單 (A2~A30)
                 const select = document.getElementById('seat-select');
                 select.innerHTML = '<option value="">請選擇</option>';
                 
+                // 修正：從 balances 物件鍵值產生座號選單
                 const seatList = Object.keys(globalData.balances).map(key => {
-                    const cleanKey = key.replace("seat_", "");
                     return { 
-                        num: Number(cleanKey), 
-                        balance: globalData.balances[key].value || globalData.balances[key] 
+                        num: Number(key.replace("seat_", "")), 
+                        balance: globalData.balances[key] 
                     };
                 }).sort((a, b) => a.num - b.num);
 
@@ -91,7 +91,6 @@
                     }
                 });
 
-                // 2. 渲染菜單
                 const menuBox = document.getElementById('menu-list');
                 menuBox.innerHTML = '';
                 globalData.menu.forEach(item => {
@@ -103,7 +102,6 @@
                     menuBox.appendChild(div);
                 });
 
-                // 3. 更新日期狀態標籤
                 const today = new Date().toLocaleDateString('en-CA');
                 const isUpdated = globalData.lastUpdated === today;
                 const tag = document.getElementById('status-tag');
@@ -135,9 +133,9 @@
         function updateBalanceDisplay() {
             const seat = document.getElementById('seat-select').value;
             if (seat) {
-                const balData = globalData.balances["seat_" + seat];
-                const bal = balData ? (balData.value !== undefined ? balData.value : balData) : 0;
-                document.getElementById('balance-val').innerText = `$ ${bal}`;
+                // 修正：直接讀取數值，解決顯示 0 的問題
+                const bal = globalData.balances["seat_" + seat];
+                document.getElementById('balance-val').innerText = `$ ${bal !== undefined ? bal : 0}`;
             } else {
                 document.getElementById('balance-val').innerText = "$ --";
             }
@@ -208,4 +206,3 @@
     </script>
 </body>
 </html>
-
