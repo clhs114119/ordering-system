@@ -6,7 +6,7 @@
     <title>119定餐系統 V3.4.2</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* 背景圖設定：上左右對齊，自動縮放 */
+        /* 1. 全螢幕背景圖設定 */
         body {
             background-image: url('https://raw.githubusercontent.com/clhs114119/ordering-system/refs/heads/main/background%20image/IMG_2131.JPG'); 
             background-size: cover;
@@ -17,32 +17,32 @@
             padding: 0;
         }
 
-        /* 自定義捲軸 */
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
         
-        /* 側邊選單毛玻璃 */
+        /* 2. 側邊選單半透明與毛玻璃 */
         #side-menu { 
             transition: transform 0.3s ease-in-out; 
             display: flex; 
             flex-direction: column;
             backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
             background-color: rgba(255, 255, 255, 0.9);
         }
 
-        /* 主容器半透明效果 */
+        /* 3. 主容器半透明效果 */
         .glass-container {
-            background-color: rgba(255, 255, 255, 0.8) !important;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.2);
+            background-color: rgba(255, 255, 255, 0.75) !important;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
         }
 
         .menu-btn-large { padding: 25px; margin: -25px; font-size: 2rem; }
         .disabled-btn { background-color: #cbd5e1 !important; cursor: not-allowed !important; transform: none !important; opacity: 0.7; }
         
-        /* 動畫效果 */
-        .active-scale:active { transform: scale(0.95); }
+        /* 讓輸入框在半透明背景下更清晰 */
+        input, select { background-color: rgba(255, 255, 255, 0.5) !important; }
     </style>
 </head>
 <body class="min-h-screen flex justify-center font-sans overflow-x-hidden">
@@ -50,30 +50,34 @@
     <div id="loading-screen" class="fixed inset-0 bg-blue-600/90 z-[100] hidden flex flex-col items-center justify-center text-white">
         <div class="w-16 h-16 border-4 border-white/30 border-t-white rounded-full animate-spin mb-6"></div>
         <h2 class="text-xl font-black mb-2 tracking-widest uppercase">處理中</h2>
-        <p class="text-sm opacity-80 animate-pulse">請稍候...</p>
     </div>
 
     <div id="menu-overlay" onclick="toggleMenu()" class="fixed inset-0 bg-black/40 z-40 hidden"></div>
     <div id="side-menu" class="fixed top-0 left-0 h-full w-64 z-50 shadow-2xl transform -translate-x-full">
         <div class="p-8 bg-blue-600/90 text-white shrink-0">
             <h2 class="text-xl font-black italic">119 訂餐系統</h2>
-            <p class="text-[10px] opacity-60 tracking-widest">V3.4.2 STABLE</p>
+            <p class="text-[10px] opacity-60 tracking-widest">V3.4.2 Stable</p>
         </div>
         
-        <nav class="p-4 space-y-2 flex-grow overflow-y-auto custom-scrollbar">
-            <button onclick="switchPage('order')" class="w-full text-left p-4 hover:bg-blue-50 rounded-2xl font-bold text-gray-700 flex items-center gap-3 transition-colors">🍱 訂餐介面</button>
-            <button onclick="switchPage('stats')" class="w-full text-left p-4 hover:bg-blue-50 rounded-2xl font-bold text-gray-700 flex items-center gap-3 transition-colors">📊 今日統計</button>
+        <nav class="p-4 space-y-2 flex-grow">
+            <button onclick="switchPage('order')" class="w-full text-left p-4 hover:bg-blue-500/10 rounded-2xl font-bold text-gray-700 flex items-center gap-3">🍱 訂餐介面</button>
+            <button onclick="switchPage('stats')" class="w-full text-left p-4 hover:bg-blue-500/10 rounded-2xl font-bold text-gray-700 flex items-center gap-3">📊 今日統計</button>
             <div class="border-t border-gray-100 my-4"></div>
-            <button onclick="switchPage('admin')" class="w-full text-left p-4 hover:bg-red-50 rounded-2xl font-bold text-red-600 flex items-center gap-3 transition-colors">⚙️ 管理員頁面</button>
+            <button onclick="switchPage('admin')" class="w-full text-left p-4 hover:bg-red-500/10 rounded-2xl font-bold text-red-600 flex items-center gap-3">⚙️ 管理員頁面</button>
         </nav>
 
-        <div class="p-6 bg-white/50 border-t border-gray-100 shrink-0">
+        <div class="p-6 bg-white/30 border-t border-gray-100 shrink-0">
             <h3 class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Update Log</h3>
-            <div class="space-y-3 max-h-32 overflow-y-auto custom-scrollbar pr-2 text-[10px] leading-relaxed text-gray-500">
+            <div class="space-y-3 max-h-40 overflow-y-auto custom-scrollbar pr-2 text-[11px] text-gray-500">
                 <div>
                     <p class="font-bold text-blue-600">V3.4.2 (Current)</p>
-                    <p>• 支援 GitHub 背景圖 & 透明介面</p>
-                    <p>• 優化毛玻璃視覺效果</p>
+                    <p>• 支援 GitHub 背景圖</p>
+                    <p>• 介面半透明毛玻璃特效</p>
+                </div>
+                <div>
+                    <p class="font-bold text-gray-700">V3.4.1</p>
+                    <p>• 加入側邊欄更新日誌</p>
+                    <p>• 優化導覽佈局</p>
                 </div>
                 <div>
                     <p class="font-bold text-gray-700">V3.4.0</p>
@@ -83,33 +87,30 @@
         </div>
     </div>
 
-    <div class="glass-container max-w-md w-full shadow-2xl min-h-screen sm:min-h-0 sm:rounded-[2.5rem] sm:my-4 overflow-hidden flex flex-col relative border border-white/40">
+    <div class="glass-container max-w-md w-full shadow-2xl min-h-screen sm:min-h-0 sm:rounded-[2.5rem] sm:my-4 overflow-hidden flex flex-col relative border border-white/30">
         
         <div class="bg-blue-600/80 p-8 text-white relative shadow-lg">
             <button onclick="toggleMenu()" class="absolute left-8 top-8 menu-btn-large">☰</button>
             <div class="text-center">
                 <h1 id="page-title" class="text-xl font-black tracking-tight">訂餐介面</h1>
-                <div id="status-tag" class="mt-1 text-[8px] tracking-widest uppercase px-3 py-1 rounded-full bg-white/20 inline-block">連線中...</div>
+                <div id="status-tag" class="mt-1 text-[8px] tracking-widest uppercase px-3 py-1 rounded-full bg-white/20 inline-block">讀取中...</div>
             </div>
         </div>
 
         <div id="page-order" class="p-6 space-y-6 flex-1">
-            <div class="flex items-center justify-between bg-white/40 p-5 rounded-3xl border border-white/50 shadow-sm">
+            <div class="flex items-center justify-between bg-white/40 p-5 rounded-3xl border border-white/50">
                 <div class="flex-1">
-                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">你的座號</label>
+                    <label class="block text-[10px] font-bold text-gray-400 mb-1">你的座號</label>
                     <select id="seat-select" onchange="updateBalanceDisplay()" class="w-full bg-transparent text-lg font-bold outline-none text-gray-700"></select>
                 </div>
                 <div class="text-right border-l border-gray-200 pl-5">
-                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">目前餘額</label>
+                    <label class="block text-[10px] font-bold text-gray-400 mb-1">目前餘額</label>
                     <div id="balance-val" class="text-xl font-black text-blue-600">$ --</div>
                 </div>
             </div>
 
             <div>
-                <div class="flex justify-between items-end px-1 mb-2">
-                    <h3 class="font-black text-gray-700">今日菜單</h3>
-                    <span class="text-[10px] font-bold text-blue-500 animate-pulse">(可複選)</span>
-                </div>
+                <h3 class="font-black text-gray-700 mb-2 px-1">今日菜單 <span class="text-[10px] text-blue-500 font-normal ml-2">(可複選)</span></h3>
                 <div id="menu-list" class="space-y-2 max-h-[35vh] overflow-y-auto pr-2 custom-scrollbar"></div>
             </div>
 
@@ -119,16 +120,16 @@
                     <span id="total-amount" class="text-3xl font-black text-blue-600">$ 0</span>
                 </div>
             </div>
-
+            
             <div class="space-y-3">
-                <button id="order-submit-btn" onclick="sendOrder()" class="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-lg active-scale transition-all text-lg">確認送出訂單</button>
-                <button id="cancel-orders-btn" onclick="cancelAllOrders()" class="w-full text-gray-400 font-bold py-2 text-xs hover:text-red-500 transition-colors">取消我今日所有訂單 (限 12:00 前)</button>
+                <button id="order-submit-btn" onclick="sendOrder()" class="w-full bg-blue-600/90 text-white font-bold py-4 rounded-2xl shadow-lg active:scale-95 transition-all text-lg">確認送出訂單</button>
+                <button id="cancel-orders-btn" onclick="cancelAllOrders()" class="w-full text-gray-500 font-bold py-2 text-xs hover:text-red-500 transition-colors">取消我今日所有訂單 (限 12:00 前)</button>
             </div>
         </div>
 
         <div id="page-stats" class="hidden p-6 space-y-4 flex-1">
             <h2 class="font-black text-gray-800 px-1">📊 今日統計</h2>
-            <div class="bg-white/50 border border-white/60 rounded-3xl overflow-hidden shadow-sm">
+            <div class="bg-white/50 border border-white/50 rounded-3xl overflow-hidden shadow-sm">
                 <table class="w-full text-left text-sm">
                     <thead class="bg-white/60 text-[10px] text-gray-400 font-bold uppercase">
                         <tr><th class="p-4">餐點</th><th class="p-4 text-center">量</th><th class="p-4 text-right">小計</th></tr>
@@ -144,34 +145,34 @@
         <div id="page-admin" class="hidden p-6 space-y-6 flex-1">
             <div id="admin-login" class="space-y-4 py-10 text-center">
                 <h2 class="font-black text-gray-800">輸入管理密鑰</h2>
-                <input type="password" id="admin-key-input" class="w-full p-4 rounded-2xl border-2 border-white/50 bg-white/40 text-center text-2xl outline-none focus:bg-white/80 transition-all" placeholder="****">
-                <button onclick="unlockAdmin()" class="w-full bg-red-600/90 text-white font-bold py-4 rounded-2xl active-scale transition-all">確認登入</button>
+                <input type="password" id="admin-key-input" class="w-full p-4 rounded-2xl border border-white/50 text-center text-2xl tracking-widest outline-none" placeholder="****">
+                <button onclick="unlockAdmin()" class="w-full bg-red-600/80 text-white font-bold py-4 rounded-2xl">確認登入</button>
             </div>
             
-            <div id="admin-content" class="hidden space-y-6 pb-10">
-                <div class="bg-orange-50/80 p-5 rounded-3xl border border-orange-100 space-y-3">
-                    <h3 class="font-black text-orange-700 border-b border-orange-200 pb-2">⚠️ 訂餐限制解鎖</h3>
-                    <p class="text-[10px] text-orange-600 leading-relaxed">解除 12:00 鎖定限制。解鎖後「取消」按鈕將自動適配為 12:00 以後。</p>
-                    <button onclick="triggerEmergencyUnlock()" class="w-full bg-orange-500 text-white py-3 rounded-xl font-bold active-scale transition-all">解除今日訂餐限制</button>
+            <div id="admin-content" class="hidden space-y-6">
+                <div class="bg-white/60 p-5 rounded-3xl shadow-sm space-y-3 border border-orange-100">
+                    <h3 class="font-black text-orange-700 border-b border-orange-100 pb-2">⚠️ 訂餐限制解鎖</h3>
+                    <p class="text-[10px] text-orange-500 leading-tight">解除 12:00 鎖定或菜單未更新限制。解鎖後使用者可強制訂餐。</p>
+                    <button onclick="triggerEmergencyUnlock()" class="w-full bg-orange-500 text-white py-3 rounded-xl font-bold active:scale-95 transition-all">解除今日訂餐限制</button>
                 </div>
 
-                <div class="bg-white/60 p-5 rounded-3xl border border-white/50 space-y-4">
+                <div class="bg-white/60 p-5 rounded-3xl shadow-sm space-y-3">
                     <h3 class="font-black text-gray-700 border-b border-gray-100 pb-2">🍱 修改價格</h3>
                     <div id="admin-menu-edit" class="space-y-2 max-h-40 overflow-y-auto custom-scrollbar"></div>
-                    <button onclick="updateMenu()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold active-scale transition-all">更新菜單</button>
+                    <button onclick="updateMenu()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold">更新菜單</button>
                 </div>
 
-                <div class="bg-white/60 p-5 rounded-3xl border border-green-100 space-y-4">
+                <div class="bg-white/60 p-5 rounded-3xl shadow-sm space-y-3 border border-green-100">
                     <h3 class="font-black text-green-700 border-b border-green-100 pb-2">💰 用戶加值</h3>
-                    <select id="recharge-seat" onchange="calcRecharge()" class="w-full p-3 rounded-xl border border-gray-200 bg-white/50 font-bold outline-none"></select>
-                    <input type="number" id="recharge-amount" oninput="calcRecharge()" class="w-full p-3 rounded-xl border border-gray-200 bg-white/50 outline-none" placeholder="加值金額">
-                    <button id="recharge-btn" onclick="rechargeUser()" disabled class="w-full bg-gray-300 text-white py-3 rounded-xl font-bold transition-all">確認加值</button>
+                    <select id="recharge-seat" onchange="calcRecharge()" class="w-full p-3 rounded-xl border border-gray-200 font-bold outline-none"></select>
+                    <input type="number" id="recharge-amount" oninput="calcRecharge()" class="w-full p-3 rounded-xl border border-gray-200 outline-none" placeholder="輸入加值金額">
+                    <button id="recharge-btn" onclick="rechargeUser()" disabled class="w-full bg-gray-300 text-white py-3 rounded-xl font-bold">確認加值</button>
                 </div>
 
-                <div class="bg-white/60 p-5 rounded-3xl border border-gray-100 space-y-4">
+                <div class="bg-white/60 p-5 rounded-3xl shadow-sm space-y-3">
                     <h3 class="font-black text-gray-700 border-b border-gray-100 pb-2">🔑 修改密鑰</h3>
-                    <input type="text" id="new-key-input" class="w-full p-3 rounded-xl border border-gray-200 bg-white/50 outline-none" placeholder="新密鑰">
-                    <button onclick="updateKey()" class="w-full bg-gray-800 text-white py-3 rounded-xl font-bold active-scale transition-all">儲存密鑰</button>
+                    <input type="text" id="new-key-input" class="w-full p-3 rounded-xl border border-gray-200 outline-none" placeholder="新密鑰">
+                    <button onclick="updateKey()" class="w-full bg-gray-800 text-white py-3 rounded-xl font-bold">儲存密鑰</button>
                 </div>
             </div>
         </div>
@@ -189,7 +190,7 @@
                 const res = await fetch(API_URL);
                 globalData = await res.json();
                 renderBaseUI();
-            } catch (e) { alert("連線失敗，請檢查網路或 API 網址"); }
+            } catch (e) { alert("連線失敗"); }
         }
 
         function renderBaseUI() {
@@ -198,37 +199,35 @@
             seatSelects.forEach(s => {
                 s.innerHTML = '<option value="">請選擇座號</option>';
                 Object.keys(globalData.balances).sort((a,b)=>a-b).forEach(num => {
-                    const opt = document.createElement('option'); 
-                    opt.value = num; opt.innerText = num + " 號";
+                    const opt = document.createElement('option'); opt.value = num; opt.innerText = num + " 號";
                     s.appendChild(opt);
                 });
             });
 
-            // 菜單渲染
+            // 菜單列表
             const menuBox = document.getElementById('menu-list');
             menuBox.innerHTML = "";
             globalData.menu.forEach(item => {
                 const div = document.createElement('div');
-                div.className = "flex justify-between items-center p-4 border-2 border-white/50 rounded-2xl cursor-pointer bg-white/60 hover:bg-white/90 transition-all";
+                div.className = "flex justify-between items-center p-4 border-2 border-white/50 rounded-2xl cursor-pointer bg-white/40 hover:bg-white/80 transition-all";
                 div.onclick = () => toggleItem(item, div);
                 div.innerHTML = `<span class="font-bold text-gray-700">${item.name}</span><span class="font-black text-gray-400">$${item.price}</span>`;
                 menuBox.appendChild(div);
             });
 
-            // 統計表格渲染
+            // 統計表格
             const tableBody = document.getElementById('stats-table-body');
             tableBody.innerHTML = "";
-            for (let i = 0; i < 16; i++) { // 1~15 項
+            for (let i = 1; i < 16; i++) {
                 const row = globalData.stats[i] || { name: "", qty: 0, total: 0 };
                 const tr = document.createElement('tr');
                 tr.innerHTML = `<td class="p-4 font-bold text-gray-600">${row.name || "---"}</td><td class="p-4 text-center">${row.qty || 0}</td><td class="p-4 text-right">$${row.total || 0}</td>`;
                 tableBody.appendChild(tr);
             }
-            // 總計列 (第 16 項)
             document.getElementById('total-qty').innerText = globalData.stats[16]?.qty || 0;
             document.getElementById('total-sum').innerText = `$ ${globalData.stats[16]?.total || 0}`;
 
-            // 狀態判定
+            // 狀態判定邏輯 (V3.3.9 需求整合)
             const today = new Date().toLocaleDateString('en-CA');
             const now = new Date();
             const tag = document.getElementById('status-tag');
@@ -253,27 +252,31 @@
                     orderBtn.classList.add('disabled-btn');
                     orderBtn.innerText = "菜單未更新，暫不開放訂餐";
                 }
+                cancelBtn.innerText = "取消我今日所有訂單 (限 12:00 前)";
             }
 
-            // 管理員編輯價格初始化
+            // 管理員菜單編輯器
             const adminMenu = document.getElementById('admin-menu-edit');
             adminMenu.innerHTML = "";
             globalData.menu.forEach(item => {
                 const div = document.createElement('div');
-                div.className = "flex items-center gap-2 bg-white/40 p-2 rounded-lg text-xs border border-white/20";
+                div.className = "flex items-center gap-2 bg-white/40 p-2 rounded-lg text-xs";
                 div.innerHTML = `<span class="flex-1 font-bold">${item.name}</span><input type="number" data-id="${item.id}" class="w-16 p-1 border rounded text-right price-input bg-white/50" value="${item.price}">`;
                 adminMenu.appendChild(div);
             });
         }
 
+        // --- 功能函式 ---
         function toggleItem(item, div) {
             const idx = selectedItems.findIndex(i => i.id === item.id);
             if(idx > -1) {
                 selectedItems.splice(idx, 1);
-                div.className = "flex justify-between items-center p-4 border-2 border-white/50 rounded-2xl cursor-pointer bg-white/60";
+                div.classList.remove('border-blue-500', 'bg-blue-50/80');
+                div.classList.add('border-white/50', 'bg-white/40');
             } else {
                 selectedItems.push(item);
-                div.className = "flex justify-between items-center p-4 border-2 border-blue-500 rounded-2xl cursor-pointer bg-blue-50/80 shadow-sm";
+                div.classList.remove('border-white/50', 'bg-white/40');
+                div.classList.add('border-blue-500', 'bg-blue-50/80');
             }
             document.getElementById('total-amount').innerText = `$ ${selectedItems.reduce((s,i)=>s+Number(i.price), 0)}`;
         }
@@ -284,18 +287,16 @@
         }
 
         async function sendOrder() {
-            if (!isMenuUpdated && !globalData.emergencyUnlocked) return alert("今日菜單尚未更新！");
+            if (!isMenuUpdated && !globalData.emergencyUnlocked) return alert("目前鎖定訂餐！");
             const seat = document.getElementById('seat-select').value;
-            if(!seat || selectedItems.length === 0) return alert("請選擇座號及餐點");
-            const total = selectedItems.reduce((s,i)=>s+Number(i.price), 0);
-            if(total > (globalData.balances[seat] || 0)) return alert("餘額不足");
-            if(!confirm(`確認訂購總計 $${total}？`)) return;
+            if(!seat || selectedItems.length === 0) return alert("請選擇座號與餐點");
+            if(!confirm(`確認訂購？`)) return;
             callAPI({ action: 'order', seat: seat, items: selectedItems });
         }
 
         async function cancelAllOrders() {
             const seat = document.getElementById('seat-select').value;
-            if(!seat || !confirm(`確定取消今日所有相關訂單？`)) return;
+            if(!seat || !confirm(`確定取消今日訂單？`)) return;
             callAPI({ action: 'cancel', seat: seat });
         }
 
@@ -308,7 +309,7 @@
         }
 
         async function triggerEmergencyUnlock() {
-            if(confirm("確定解除限制嗎？")) callAPI({ action: 'triggerUnlock', key: adminKey });
+            if(confirm("確定解除今日限制？")) callAPI({ action: 'triggerUnlock', key: adminKey });
         }
 
         function calcRecharge() {
@@ -323,9 +324,7 @@
         }
 
         async function rechargeUser() {
-            const seat = document.getElementById('recharge-seat').value;
-            const amt = document.getElementById('recharge-amount').value;
-            callAPI({ action: 'recharge', seat: seat, amount: amt, key: adminKey });
+            callAPI({ action: 'recharge', seat: document.getElementById('recharge-seat').value, amount: document.getElementById('recharge-amount').value, key: adminKey });
         }
 
         async function updateMenu() {
@@ -334,8 +333,7 @@
         }
 
         async function updateKey() {
-            const nk = document.getElementById('new-key-input').value;
-            if(nk) callAPI({ action: 'updateKey', newKey: nk, key: adminKey });
+            callAPI({ action: 'updateKey', newKey: document.getElementById('new-key-input').value, key: adminKey });
         }
 
         async function callAPI(payload) {
@@ -344,10 +342,7 @@
                 const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
                 alert(await res.text());
                 location.reload();
-            } catch (e) { 
-                alert("傳送失敗，請重新嘗試"); 
-                document.getElementById('loading-screen').classList.add('hidden'); 
-            }
+            } catch (e) { alert("連線異常"); document.getElementById('loading-screen').classList.add('hidden'); }
         }
 
         function toggleMenu() {
@@ -359,10 +354,7 @@
         }
 
         function switchPage(p) {
-            ['order', 'stats', 'admin'].forEach(id => {
-                const el = document.getElementById('page-'+id);
-                if (el) el.classList.toggle('hidden', id !== p);
-            });
+            ['order', 'stats', 'admin'].forEach(id => document.getElementById('page-'+id).classList.toggle('hidden', id !== p));
             document.getElementById('page-title').innerText = (p === 'order') ? '訂餐介面' : (p === 'stats' ? '今日統計' : '管理員後台');
             toggleMenu();
         }
