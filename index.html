@@ -3,18 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>119定餐系統 V3.2.4 Beta2</title>
+    <title>119定餐系統 V3.3.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
         #side-menu { transition: transform 0.3s ease-in-out; }
-        /* 讓選單按鈕更好點擊 */
-        .menu-btn-large {
-            padding: 20px;
-            margin: -20px;
-            font-size: 1.875rem; /* 30px */
-        }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen flex justify-center font-sans overflow-x-hidden">
@@ -22,37 +16,29 @@
     <div id="loading-screen" class="fixed inset-0 bg-blue-600/95 z-[100] hidden flex flex-col items-center justify-center text-white">
         <div class="w-16 h-16 border-4 border-white/30 border-t-white rounded-full animate-spin mb-6"></div>
         <h2 class="text-xl font-black mb-2 tracking-widest">處理中</h2>
-        <p class="text-sm opacity-80 animate-pulse">請勿關閉頁面，正在同步數據...</p>
+        <p class="text-sm opacity-80 animate-pulse">請勿關閉頁面...</p>
     </div>
 
     <div id="menu-overlay" onclick="toggleMenu()" class="fixed inset-0 bg-black/50 z-40 hidden"></div>
-    
     <div id="side-menu" class="fixed top-0 left-0 h-full w-64 bg-white z-50 shadow-2xl transform -translate-x-full">
         <div class="p-8 bg-blue-600 text-white">
             <h2 class="text-xl font-black">系統選單</h2>
-            <p class="text-[10px] opacity-70 tracking-widest uppercase">Version 3.2.4 Beta2</p>
+            <p class="text-[10px] opacity-70 uppercase tracking-widest">V3.3.0 Beta3</p>
         </div>
         <nav class="p-4 space-y-2">
-            <button onclick="switchPage('order')" class="w-full text-left p-4 hover:bg-blue-50 rounded-2xl font-bold text-gray-700 flex items-center gap-3 transition-colors">
-                <span>🍱</span> 訂餐介面
-            </button>
-            <button onclick="switchPage('stats')" class="w-full text-left p-4 hover:bg-blue-50 rounded-2xl font-bold text-gray-700 flex items-center gap-3 transition-colors">
-                <span>📊</span> 今日統計
-            </button>
-            <div class="border-t border-gray-100 my-4"></div>
-            <p class="text-[10px] text-gray-300 text-center tracking-widest font-bold uppercase">119 Class System</p>
+            <button onclick="switchPage('order')" class="w-full text-left p-4 hover:bg-blue-50 rounded-2xl font-bold text-gray-700 flex items-center gap-3 transition-colors"><span>🍱</span> 訂餐介面</button>
+            <button onclick="switchPage('stats')" class="w-full text-left p-4 hover:bg-blue-50 rounded-2xl font-bold text-gray-700 flex items-center gap-3 transition-colors"><span>📊</span> 今日統計</button>
+            <button onclick="switchPage('admin')" class="w-full text-left p-4 hover:bg-red-50 rounded-2xl font-bold text-red-600 flex items-center gap-3 transition-colors"><span>⚙️</span> 管理員頁面</button>
         </nav>
     </div>
 
     <div class="max-w-md w-full bg-white shadow-2xl min-h-screen sm:min-h-0 sm:rounded-[2.5rem] sm:my-4 overflow-hidden border border-gray-100 flex flex-col relative transition-all">
         
         <div class="bg-blue-600 p-8 text-white relative shadow-lg">
-            <button onclick="toggleMenu()" class="absolute left-8 top-8 menu-btn-large hover:scale-110 active:scale-90 transition-transform">
-                ☰
-            </button>
+            <button onclick="toggleMenu()" class="absolute left-8 top-8 text-3xl hover:scale-110 active:scale-90 transition-transform">☰</button>
             <div class="text-center">
                 <h1 id="page-title" class="text-xl font-black tracking-tight">訂餐介面</h1>
-                <div id="status-tag" class="mt-1 text-[10px] tracking-widest uppercase px-3 py-1 rounded-full bg-white/20 inline-block text-[8px]">連線中...</div>
+                <div id="status-tag" class="mt-1 text-[8px] tracking-widest uppercase px-3 py-1 rounded-full bg-white/20 inline-block">連線中...</div>
             </div>
         </div>
 
@@ -61,7 +47,7 @@
                 <div class="flex-1">
                     <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">你的座號</label>
                     <select id="seat-select" onchange="updateBalanceDisplay()" class="w-full bg-transparent text-lg font-bold outline-none cursor-pointer text-gray-700">
-                        <option value="">讀取中...</option>
+                        <option value="">載入中...</option>
                     </select>
                 </div>
                 <div class="text-right border-l border-gray-200 pl-5">
@@ -71,10 +57,7 @@
             </div>
 
             <div>
-                <h2 class="font-black text-gray-800 mb-4 px-1 flex justify-between items-center text-sm">
-                    <span>今日菜單</span>
-                    <span class="text-[10px] bg-gray-100 text-gray-400 px-2 py-1 rounded-md italic">可複選項目</span>
-                </h2>
+                <h2 class="font-black text-gray-800 mb-4 px-1 flex justify-between items-center text-sm">今日菜單 <span class="text-[10px] text-gray-400 font-normal italic">可複選項目</span></h2>
                 <div id="menu-list" class="space-y-2 max-h-[35vh] overflow-y-auto pr-2 custom-scrollbar"></div>
             </div>
 
@@ -87,41 +70,61 @@
             </div>
 
             <div class="space-y-3 pt-2">
-                <button id="send-btn" onclick="sendOrder()" class="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-lg active:scale-95 transition-all text-lg">確認送出訂單</button>
+                <button onclick="sendOrder()" class="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-lg active:scale-95 transition-all text-lg">確認送出訂單</button>
                 <button onclick="cancelAllOrders()" class="w-full text-gray-400 font-bold py-2 text-xs hover:text-red-500 transition-colors">取消我今日所有訂單 (限 12:00 前)</button>
             </div>
         </div>
 
         <div id="page-stats" class="hidden p-6 space-y-4 flex-1">
-            <h2 class="font-black text-gray-800 px-1 flex items-center gap-2 font-lg">📊 今日統計</h2>
+            <h2 class="font-black text-gray-800 px-1 flex items-center gap-2">📊 今日統計</h2>
             <div class="bg-white border border-gray-100 rounded-3xl overflow-hidden shadow-sm">
                 <table class="w-full text-left">
                     <thead class="bg-gray-50 text-[10px] font-bold text-gray-400 uppercase">
-                        <tr>
-                            <th class="p-4">餐點名稱</th>
-                            <th class="p-4 text-center">數量</th>
-                            <th class="p-4 text-right">小計</th>
-                        </tr>
+                        <tr><th class="p-4">餐點</th><th class="p-4 text-center">數量</th><th class="p-4 text-right">小計</th></tr>
                     </thead>
                     <tbody id="stats-table-body" class="text-sm divide-y divide-gray-50"></tbody>
                     <tfoot class="bg-blue-50 font-black text-blue-700">
-                        <tr id="stats-total-row">
-                            <td class="p-4 text-[11px]">總結（不含飲料）</td>
-                            <td id="total-qty" class="p-4 text-center">0</td>
-                            <td id="total-sum" class="p-4 text-right">$ 0</td>
-                        </tr>
+                        <tr><td class="p-4 text-xs">總結（不含飲料）</td><td id="total-qty" class="p-4 text-center">0</td><td id="total-sum" class="p-4 text-right">$ 0</td></tr>
                     </tfoot>
                 </table>
+            </div>
+        </div>
+
+        <div id="page-admin" class="hidden p-6 space-y-6 flex-1 bg-slate-50 overflow-y-auto custom-scrollbar">
+            <div id="admin-login" class="space-y-4 py-10 text-center">
+                <h2 class="text-xl font-black text-gray-800">請輸入管理密鑰</h2>
+                <input type="password" id="admin-key-input" class="w-full p-4 rounded-2xl border-2 border-gray-200 text-center text-2xl tracking-widest" placeholder="****">
+                <button onclick="unlockAdmin()" class="w-full bg-red-600 text-white font-bold py-4 rounded-2xl shadow-lg active:scale-95 transition-all">確認進入</button>
+            </div>
+
+            <div id="admin-content" class="hidden space-y-6">
+                <div class="bg-white p-5 rounded-3xl shadow-sm space-y-4 border border-gray-100">
+                    <h3 class="font-black text-gray-700 border-b pb-2 flex items-center gap-2">🍱 價格修改</h3>
+                    <div id="admin-menu-edit" class="space-y-2 max-h-48 overflow-y-auto custom-scrollbar"></div>
+                    <button onclick="updateMenuPrices()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold shadow-md active:scale-95 transition-all">更新菜單 (B20 改為今日)</button>
+                </div>
+
+                <div class="bg-white p-5 rounded-3xl shadow-sm space-y-4 border border-gray-100">
+                    <h3 class="font-black text-gray-700 border-b pb-2">💰 用戶加值</h3>
+                    <select id="recharge-seat" class="w-full p-3 rounded-xl border border-gray-200 font-bold bg-white"></select>
+                    <input type="number" id="recharge-amount" class="w-full p-3 rounded-xl border border-gray-200" placeholder="輸入加值金額">
+                    <button onclick="rechargeUser()" class="w-full bg-green-600 text-white py-3 rounded-xl font-bold shadow-md active:scale-95 transition-all">確認加值</button>
+                </div>
+
+                <div class="bg-white p-5 rounded-3xl shadow-sm space-y-4 border border-gray-100">
+                    <h3 class="font-black text-gray-700 border-b pb-2 text-xs">🔑 修改登入密鑰</h3>
+                    <input type="text" id="new-key-input" class="w-full p-3 rounded-xl border border-gray-200" placeholder="輸入新密鑰">
+                    <button onclick="updateAdminKey()" class="w-full bg-gray-800 text-white py-3 rounded-xl font-bold active:scale-95 transition-all">儲存新密鑰</button>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        // --- 請在此處替換您的 API 網址 ---
         const API_URL = "https://script.google.com/macros/s/AKfycbzbQYBYyKi_sDdd-LKv5fasV0PUXXNAN7a9RTsnS9Dq_SBgUmO0vpb7a0dx2B8DFVt2oA/exec";
-        
         let globalData = { balances: {}, menu: [], stats: [] };
         let selectedItems = [];
+        let currentKey = "";
 
         function toggleMenu() {
             const menu = document.getElementById('side-menu');
@@ -134,7 +137,8 @@
         function switchPage(page) {
             document.getElementById('page-order').classList.toggle('hidden', page !== 'order');
             document.getElementById('page-stats').classList.toggle('hidden', page !== 'stats');
-            document.getElementById('page-title').innerText = page === 'order' ? '訂餐介面' : '今日統計';
+            document.getElementById('page-admin').classList.toggle('hidden', page !== 'admin');
+            document.getElementById('page-title').innerText = page === 'order' ? '訂餐介面' : (page === 'stats' ? '今日統計' : '管理員頁面');
             toggleMenu();
         }
 
@@ -142,55 +146,68 @@
             try {
                 const res = await fetch(API_URL);
                 globalData = await res.json();
-                
-                const select = document.getElementById('seat-select');
-                select.innerHTML = '<option value="">請選擇座號</option>';
-                Object.keys(globalData.balances).filter(k=>!k.includes("seat_")).sort((a,b)=>Number(a)-Number(b)).forEach(s=>{
-                    const opt = document.createElement('option'); opt.value = s; opt.innerText = s + " 號";
-                    select.appendChild(opt);
+                currentKey = globalData.adminKey;
+
+                // 1. 渲染座號選單 (訂餐與加值共用)
+                const seats = Object.keys(globalData.balances).sort((a,b)=>Number(a)-Number(b));
+                const sSelect = document.getElementById('seat-select');
+                const rSelect = document.getElementById('recharge-seat');
+                sSelect.innerHTML = '<option value="">請選擇座號</option>';
+                rSelect.innerHTML = '<option value="">選擇加值用戶</option>';
+                seats.forEach(s => {
+                    const opt = `<option value="${s}">${s} 號</option>`;
+                    sSelect.innerHTML += opt;
+                    rSelect.innerHTML += opt;
                 });
 
+                // 2. 渲染菜單
                 const menuBox = document.getElementById('menu-list');
+                const adminMenuBox = document.getElementById('admin-menu-edit');
+                menuBox.innerHTML = ""; adminMenuBox.innerHTML = "";
                 globalData.menu.forEach(item => {
+                    // 一般用戶視圖
                     const div = document.createElement('div');
-                    div.className = "flex justify-between items-center p-4 border-2 border-gray-50 rounded-2xl cursor-pointer bg-white transition-all hover:bg-gray-50";
+                    div.className = "flex justify-between items-center p-4 border-2 border-gray-50 rounded-2xl cursor-pointer bg-white transition-all";
                     div.onclick = () => toggleItem(item, div);
                     div.innerHTML = `<span class="font-bold text-gray-700">${item.name}</span><span class="font-black text-gray-400">$${item.price}</span>`;
                     menuBox.appendChild(div);
+
+                    // 管理員編輯視圖
+                    const aDiv = document.createElement('div');
+                    aDiv.className = "flex items-center gap-2 bg-gray-50 p-2 rounded-xl text-sm";
+                    aDiv.innerHTML = `<span class="flex-1 font-bold text-gray-600">${item.name}</span>
+                                     <input type="number" data-id="${item.id}" class="w-20 p-2 border rounded-lg text-right price-input" value="${item.price}">`;
+                    adminMenuBox.appendChild(aDiv);
                 });
 
+                // 3. 今日統計表格 (A2:C16)
                 const tableBody = document.getElementById('stats-table-body');
-                tableBody.innerHTML = ""; 
+                tableBody.innerHTML = "";
                 for (let i = 1; i < 16; i++) {
-                    const row = globalData.stats[i] || { name: "", qty: 0, total: 0 };
-                    const tr = document.createElement('tr');
-                    const qty = (row.qty === "" || row.qty === undefined) ? 0 : row.qty;
-                    const total = (row.total === "" || row.total === undefined) ? 0 : row.total;
-                    tr.innerHTML = `<td class="p-4 font-bold text-gray-600">${row.name || "---"}</td>
-                                    <td class="p-4 text-center">${qty}</td>
-                                    <td class="p-4 text-right">$${total}</td>`;
-                    tableBody.appendChild(tr);
+                    const row = globalData.stats[i] || { name: "---", qty: 0, total: 0 };
+                    tableBody.innerHTML += `<tr><td class="p-4 font-bold text-gray-600">${row.name || "---"}</td><td class="p-4 text-center">${row.qty || 0}</td><td class="p-4 text-right">$${row.total || 0}</td></tr>`;
                 }
-                const grandTotal = globalData.stats[16] || { qty: 0, total: 0 };
-                document.getElementById('total-qty').innerText = grandTotal.qty || 0;
-                document.getElementById('total-sum').innerText = `$ ${grandTotal.total || 0}`;
+                document.getElementById('total-qty').innerText = globalData.stats[16]?.qty || 0;
+                document.getElementById('total-sum').innerText = `$ ${globalData.stats[16]?.total || 0}`;
 
+                // 4. 更新日期狀態
                 const today = new Date().toLocaleDateString('en-CA');
                 const tag = document.getElementById('status-tag');
                 tag.innerText = globalData.lastUpdated === today ? "今日菜單已更新" : "菜單尚未更新";
                 tag.style.backgroundColor = globalData.lastUpdated === today ? "#22c55e" : "#f97316";
 
-            } catch (e) { alert("讀取失敗，請確認網路連線。"); }
+            } catch (e) { alert("連線超時，請檢查 API 設定。"); }
         }
 
+        // --- 功能模組 ---
         function toggleItem(item, div) {
             const idx = selectedItems.findIndex(i => i.id === item.id);
             if(idx > -1) {
                 selectedItems.splice(idx, 1);
-                div.className = "flex justify-between items-center p-4 border-2 border-gray-50 rounded-2xl cursor-pointer bg-white transition-all";
+                div.classList.remove('border-blue-500', 'bg-blue-50', 'shadow-sm');
             } else {
                 selectedItems.push(item);
-                div.className = "flex justify-between items-center p-4 border-2 border-blue-500 rounded-2xl cursor-pointer bg-blue-50 transition-all shadow-sm";
+                div.classList.add('border-blue-500', 'bg-blue-50', 'shadow-sm');
             }
             const total = selectedItems.reduce((s, i) => s + Number(i.price), 0);
             document.getElementById('total-amount').innerText = `$ ${total}`;
@@ -199,53 +216,68 @@
 
         function updateBalanceDisplay() {
             const s = document.getElementById('seat-select').value;
-            const bal = globalData.balances[s] ?? globalData.balances["seat_" + s] ?? 0;
-            document.getElementById('balance-val').innerText = `$ ${bal}`;
+            document.getElementById('balance-val').innerText = `$ ${globalData.balances[s] || 0}`;
         }
 
-        async function sendOrder() {
-            const seat = document.getElementById('seat-select').value;
-            const total = selectedItems.reduce((s, i) => s + Number(i.price), 0);
-            if(!seat) return alert("請先選取您的座號！");
-            if(selectedItems.length === 0) return alert("請先點選餐點！");
-            
-            const curBal = Number(document.getElementById('balance-val').innerText.replace("$ ", ""));
-            if(total > curBal) return alert(`餘額不足！無法訂購。`);
+        function unlockAdmin() {
+            const input = document.getElementById('admin-key-input').value;
+            if(input === currentKey) {
+                document.getElementById('admin-login').classList.add('hidden');
+                document.getElementById('admin-content').classList.remove('hidden');
+            } else { alert("密鑰錯誤！"); }
+        }
 
-            if(!confirm(`確認訂購總計 $${total}？`)) return;
-            
+        // --- 管理員操作 API ---
+        async function adminAction(payload) {
             document.getElementById('loading-screen').classList.remove('hidden');
-
+            payload.key = currentKey;
             try {
-                const res = await fetch(API_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action: 'order', seat: seat, items: selectedItems, price: total })
-                });
+                const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
                 alert(await res.text());
                 location.reload();
-            } catch (e) { 
-                alert("傳送失敗"); 
-                document.getElementById('loading-screen').classList.add('hidden');
-            }
+            } catch (e) { alert("連線失敗"); document.getElementById('loading-screen').classList.add('hidden'); }
+        }
+
+        function updateMenuPrices() {
+            const inputs = document.querySelectorAll('.price-input');
+            const newMenu = Array.from(inputs).map(i => ({ id: i.dataset.id, price: i.value }));
+            adminAction({ action: 'updateMenu', newMenu: newMenu });
+        }
+
+        function rechargeUser() {
+            const seat = document.getElementById('recharge-seat').value;
+            const amount = document.getElementById('recharge-amount').value;
+            if(!seat || !amount) return alert("請選擇座號並輸入金額");
+            adminAction({ action: 'recharge', seat: seat, amount: amount });
+        }
+
+        function updateAdminKey() {
+            const newK = document.getElementById('new-key-input').value;
+            if(!newK) return alert("請輸入新密鑰");
+            adminAction({ action: 'updateKey', newKey: newK });
+        }
+
+        // --- 用戶下單 ---
+        async function sendOrder() {
+            const seat = document.getElementById('seat-select').value;
+            if(!seat || selectedItems.length === 0) return alert("請選擇座號與餐點");
+            if(!confirm("確認訂購？")) return;
+            document.getElementById('loading-screen').classList.remove('hidden');
+            try {
+                const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'order', seat, items: selectedItems }) });
+                alert(await res.text()); location.reload();
+            } catch (e) { alert("失敗"); document.getElementById('loading-screen').classList.add('hidden'); }
         }
 
         async function cancelAllOrders() {
             const seat = document.getElementById('seat-select').value;
-            if(!seat) return alert("請先選取您的座號以搜尋訂單！");
-
-            if (new Date().getHours() >= 12) return alert("12:00 後不可取消。");
-            
-            if(!confirm(`確定要取消 ${seat} 號今日的所有訂單？`)) return;
-
+            if(!seat) return alert("請先選取座號");
+            if(!confirm("確定要取消今日所有訂單？")) return;
             document.getElementById('loading-screen').classList.remove('hidden');
             try {
-                const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'cancel', seat: seat }) });
-                alert(await res.text());
-                location.reload();
-            } catch (e) { 
-                alert("取消失敗"); 
-                document.getElementById('loading-screen').classList.add('hidden'); 
-            }
+                const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'cancel', seat }) });
+                alert(await res.text()); location.reload();
+            } catch (e) { alert("失敗"); document.getElementById('loading-screen').classList.add('hidden'); }
         }
 
         init();
