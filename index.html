@@ -6,7 +6,7 @@
     <title>119定餐系統 V3.4.2</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* 1. 全螢幕背景圖設定 */
+        /* 背景圖設定 */
         body {
             background-image: url('https://raw.githubusercontent.com/clhs114119/ordering-system/refs/heads/main/background%20image/IMG_2131.JPG'); 
             background-size: cover;
@@ -34,19 +34,29 @@
             background-color: rgba(255, 255, 255, 0) !important;
             backdrop-filter: blur(3px);
             -webkit-backdrop-filter: blur(3px);
-            border: 1px solid rgba(255, 255, 255, 0.3); 
+            border: 1px solid rgba(255, 255, 255, 0.2); 
             box-shadow: 
-                0 10px 40px rgba(0, 0, 0, 0.15),
-                inset 0 0 20px rgba(255, 255, 255, 0.15); 
+                0 10px 40px rgba(0, 0, 0, 0.1),
+                inset 0 0 20px rgba(255, 255, 255, 0.1); 
         }
 
-        /* 標題與元件 50% 透明 */
+        /* 50% 透明元件 */
         .header-glass { background-color: rgba(37, 99, 235, 0.5) !important; }
         .card-bg { background-color: rgba(255, 255, 255, 0.5) !important; border: 1px solid rgba(255, 255, 255, 0.2); }
         input, select { background-color: rgba(255, 255, 255, 0.4) !important; border: 1px solid rgba(255, 255, 255, 0.3); }
         
         .menu-btn-large { padding: 25px; margin: -25px; font-size: 2rem; }
         .disabled-btn { background-color: rgba(203, 213, 225, 0.5) !important; cursor: not-allowed !important; opacity: 0.7; }
+        
+        /* 新增：取消按鈕邊框樣式 */
+        .cancel-btn-border {
+            border: 1.5px solid rgba(239, 68, 68, 0.5); /* 紅色半透明邊框 */
+            transition: all 0.3s ease;
+        }
+        .cancel-btn-border:hover {
+            background-color: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.8);
+        }
     </style>
 </head>
 <body class="min-h-screen flex justify-center font-sans overflow-x-hidden">
@@ -73,23 +83,17 @@
         <div class="p-6 bg-white/20 border-t border-white/10 shrink-0">
             <h3 class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3">Update Log</h3>
             <div class="space-y-4 max-h-52 overflow-y-auto custom-scrollbar pr-2 text-[11px] text-gray-600">
-                <div><p class="font-bold text-blue-700">V3.4.2</p><p>• 玻璃折射視覺優化</p><p>• 修正解鎖說明與日誌</p></div>
-                <div><p class="font-bold text-gray-700">V3.4.1</p><p>• 側邊欄 UI 佈局調整</p></div>
+                <div><p class="font-bold text-blue-700">V3.4.1</p><p>• 加入側邊欄更新日誌</p><p>• 優化導覽佈局</p></div>
                 <div><p class="font-bold text-gray-700">V3.4.0</p><p>• 強化後端注入攻擊防護</p></div>
-                <div><p class="font-bold text-gray-700">V3.3.9</p><p>• 取消訂單文字動態切換</p></div>
-                <div><p class="font-bold text-gray-700">V3.3.8</p><p>• 修正自動讀取資料與表格</p></div>
             </div>
         </div>
     </div>
 
     <div class="glass-container max-w-md w-full min-h-screen sm:min-h-0 sm:rounded-[2.5rem] sm:my-4 overflow-hidden flex flex-col relative">
-        
-        <div class="header-glass p-8 text-white relative shadow-lg">
+        <div class="header-glass p-8 text-white relative shadow-lg text-center">
             <button onclick="toggleMenu()" class="absolute left-8 top-8 menu-btn-large">☰</button>
-            <div class="text-center">
-                <h1 id="page-title" class="text-xl font-black tracking-tight text-white">訂餐介面</h1>
-                <div id="status-tag" class="mt-1 text-[8px] tracking-widest uppercase px-3 py-1 rounded-full bg-white/30 inline-block">讀取中...</div>
-            </div>
+            <h1 id="page-title" class="text-xl font-black tracking-tight text-white">訂餐介面</h1>
+            <div id="status-tag" class="mt-1 text-[8px] tracking-widest uppercase px-3 py-1 rounded-full bg-white/30 inline-block">讀取中...</div>
         </div>
 
         <div id="page-order" class="p-6 space-y-6 flex-1">
@@ -116,9 +120,9 @@
                 </div>
             </div>
             
-            <div class="space-y-3">
+            <div class="space-y-3 text-center">
                 <button id="order-submit-btn" onclick="sendOrder()" class="w-full bg-blue-600/70 text-white font-bold py-4 rounded-2xl shadow-lg active:scale-95 transition-all text-lg">確認送出訂單</button>
-                <button id="cancel-orders-btn" onclick="cancelAllOrders()" class="w-full text-gray-600 font-bold py-2 text-xs hover:text-red-600 transition-colors">取消我今日所有訂單 (限 12:00 前)</button>
+                <button id="cancel-orders-btn" onclick="cancelAllOrders()" class="w-full cancel-btn-border text-red-500 font-bold py-3 rounded-xl text-xs active:scale-95">取消我今日所有訂單 (限 12:00 前)</button>
             </div>
         </div>
 
@@ -133,7 +137,7 @@
                 <div class="card-bg p-5 rounded-3xl shadow-sm space-y-3 border-orange-200/30">
                     <h3 class="font-black text-orange-800 border-b border-orange-200/30 pb-2">⚠️ 訂餐限制解鎖</h3>
                     <p class="text-[10px] text-orange-600 leading-relaxed bg-orange-50/30 p-2 rounded-lg">解除今日 12:00 鎖定或「菜單未更新」之限制。解鎖後，按鈕將變為紫色，使用者可強制進行訂餐動作。</p>
-                    <button onclick="triggerEmergencyUnlock()" class="w-full bg-orange-500/70 text-white py-3 rounded-xl font-bold active:scale-95 transition-all shadow-md">解除今日訂餐限制</button>
+                    <button onclick="triggerEmergencyUnlock()" class="w-full bg-orange-500/70 text-white py-3 rounded-xl font-bold shadow-md active:scale-95">解除今日訂餐限制</button>
                 </div>
 
                 <div class="card-bg p-5 rounded-3xl shadow-sm space-y-3">
@@ -145,8 +149,7 @@
                 <div class="card-bg p-5 rounded-3xl shadow-sm space-y-4 border-green-200/30">
                     <h3 class="font-black text-green-800 border-b border-green-200/30 pb-2">💰 用戶加值</h3>
                     <select id="recharge-seat" onchange="calcRecharge()" class="w-full p-3 rounded-xl font-bold outline-none"></select>
-                    <input type="number" id="recharge-amount" oninput="calcRecharge()" class="w-full p-3 rounded-xl outline-none" placeholder="輸入加值金額">
-                    
+                    <input type="number" id="recharge-amount" oninput="calcRecharge()" class="w-full p-3 rounded-xl outline-none" placeholder="輸入金額">
                     <div class="grid grid-cols-2 gap-2 bg-white/20 p-3 rounded-xl text-center text-xs">
                         <div><p class="text-gray-500">目前餘額</p><p id="preview-current" class="font-black text-gray-700">$ --</p></div>
                         <div class="border-l border-white/20"><p class="text-gray-500">加值後</p><p id="preview-after" class="font-black text-green-700">--</p></div>
@@ -237,11 +240,12 @@
                 tag.innerText = "管理員解鎖中";
                 tag.style.backgroundColor = "rgba(168, 85, 247, 0.5)"; 
                 orderBtn.classList.remove('disabled-btn');
-                if (now.getHours() >= 12) cancelBtn.innerText = "取消今日訂單 (限 12:00 後)";
+                if (now.getHours() >= 12) cancelBtn.innerText = "取消我今日所有訂單 (限 12:00 後)";
             } else {
                 tag.innerText = isMenuUpdated ? "菜單已更新" : "菜單未更新";
                 tag.style.backgroundColor = isMenuUpdated ? "rgba(34, 197, 94, 0.5)" : "rgba(249, 115, 22, 0.5)";
                 if (!isMenuUpdated) orderBtn.classList.add('disabled-btn');
+                cancelBtn.innerText = "取消我今日所有訂單 (限 12:00 前)";
             }
 
             const adminMenu = document.getElementById('admin-menu-edit');
