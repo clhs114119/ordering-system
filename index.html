@@ -6,7 +6,7 @@
     <title>119定餐系統 V3.4.2</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* 1. 背景設定 */
+        /* 1. 全螢幕背景圖 */
         body {
             background-image: url('https://raw.githubusercontent.com/clhs114119/ordering-system/refs/heads/main/background%20image/IMG_2131.JPG'); 
             background-size: cover;
@@ -18,35 +18,43 @@
         }
 
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
         
-        /* 2. 側邊選單：液態玻璃 */
+        /* 2. 側邊選單：50% 透明度 */
         #side-menu { 
             transition: transform 0.3s ease-in-out; 
             display: flex; 
             flex-direction: column;
-            backdrop-filter: blur(20px) saturate(180%);
-            -webkit-backdrop-filter: blur(20px) saturate(180%);
-            background-color: rgba(255, 255, 255, 0.5); /* 50% 透明度 */
-            border-right: 1px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            background-color: rgba(255, 255, 255, 0.5); /* 50% 透明 */
         }
 
-        /* 3. 主容器：液態玻璃效果 (Liquid Glass) */
+        /* 3. 主容器：液態玻璃效果 (高透明度) */
         .glass-container {
-            background-color: rgba(255, 255, 255, 0) !important; /* 50% 透明度 */
-            backdrop-filter: blur(16px) saturate(180%);
-            -webkit-backdrop-filter: blur(16px) saturate(180%);
-            /* 模擬玻璃邊緣折射光 */
-            border: 1px solid rgba(255, 255, 255, 0.4);
+            background-color: rgba(255, 255, 255, 0.1) !important; /* 極高透明度 */
+            backdrop-filter: blur(10px); /* 加強模糊感 */
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3); /* 模擬邊緣折射 */
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+        }
+
+        /* 標題列與按鈕：50% 透明度 */
+        .glass-header { background-color: rgba(37, 99, 235, 0.5) !important; }
+        .glass-button { background-color: rgba(37, 99, 235, 0.5) !important; }
+        .glass-button-red { background-color: rgba(220, 38, 38, 0.5) !important; }
+        
+        /* 內部小區塊：50% 透明度 */
+        .glass-card {
+            background-color: rgba(255, 255, 255, 0.5) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .menu-btn-large { padding: 25px; margin: -25px; font-size: 2rem; }
         .disabled-btn { background-color: rgba(203, 213, 225, 0.5) !important; cursor: not-allowed !important; opacity: 0.6; }
         
-        /* 強制內部輸入框與下拉選單維持 50% */
         input, select { 
-            background-color: rgba(255, 255, 255, 0.5) !important; 
+            background-color: rgba(255, 255, 255, 0.4) !important; 
             border: 1px solid rgba(255, 255, 255, 0.3) !important;
         }
     </style>
@@ -55,44 +63,48 @@
 
     <div id="loading-screen" class="fixed inset-0 bg-blue-600/70 z-[100] hidden flex flex-col items-center justify-center text-white backdrop-blur-md">
         <div class="w-16 h-16 border-4 border-white/30 border-t-white rounded-full animate-spin mb-6"></div>
-        <h2 class="text-xl font-black mb-2 tracking-widest uppercase text-white">處理中</h2>
+        <h2 class="text-xl font-black mb-2 tracking-widest uppercase">處理中</h2>
     </div>
 
     <div id="menu-overlay" onclick="toggleMenu()" class="fixed inset-0 bg-black/30 z-40 hidden"></div>
     <div id="side-menu" class="fixed top-0 left-0 h-full w-64 z-50 shadow-2xl transform -translate-x-full">
-        <div class="p-8 bg-blue-600/60 text-white shrink-0">
+        <div class="p-8 glass-header text-white shrink-0">
             <h2 class="text-xl font-black italic">119 訂餐系統</h2>
             <p class="text-[10px] opacity-80 tracking-widest">V3.4.2 Stable</p>
         </div>
         
         <nav class="p-4 space-y-2 flex-grow">
-            <button onclick="switchPage('order')" class="w-full text-left p-4 hover:bg-white/30 rounded-2xl font-bold text-gray-800 flex items-center gap-3">🍱 訂餐介面</button>
-            <button onclick="switchPage('stats')" class="w-full text-left p-4 hover:bg-white/30 rounded-2xl font-bold text-gray-800 flex items-center gap-3">📊 今日統計</button>
+            <button onclick="switchPage('order')" class="w-full text-left p-4 hover:bg-white/20 rounded-2xl font-bold text-gray-800 flex items-center gap-3">🍱 訂餐介面</button>
+            <button onclick="switchPage('stats')" class="w-full text-left p-4 hover:bg-white/20 rounded-2xl font-bold text-gray-800 flex items-center gap-3">📊 今日統計</button>
             <div class="border-t border-white/20 my-4"></div>
             <button onclick="switchPage('admin')" class="w-full text-left p-4 hover:bg-red-500/20 rounded-2xl font-bold text-red-700 flex items-center gap-3">⚙️ 管理員頁面</button>
         </nav>
 
-        <div class="p-6 bg-white/20 border-t border-white/20 shrink-0">
+        <div class="p-6 bg-white/20 border-t border-white/10 shrink-0">
             <h3 class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3">Update Log</h3>
             <div class="space-y-3 max-h-40 overflow-y-auto custom-scrollbar pr-2 text-[11px] text-gray-600">
-                <div><p class="font-bold text-blue-700">V3.4.2 (Current)</p><p>• 升級液態玻璃視覺效果</p><p>• 全域 50% 透明度優化</p></div>
-                <div><p class="font-bold text-gray-700">V3.4.1</p><p>• 加入更新日誌</p></div>
+                <div>
+                    <p class="font-bold text-blue-700">V3.4.2 (Current)</p>
+                    <p>• 套用高度透明液態玻璃效果</p>
+                    <p>• 統一元件 50% 透明度</p>
+                    <p>• 支援 GitHub 背景與修正加值預覽</p>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="glass-container max-w-md w-full shadow-2xl min-h-screen sm:min-h-0 sm:rounded-[2.5rem] sm:my-4 overflow-hidden flex flex-col relative border border-white/30">
+    <div class="glass-container max-w-md w-full shadow-2xl min-h-screen sm:min-h-0 sm:rounded-[2.5rem] sm:my-4 overflow-hidden flex flex-col relative">
         
-        <div class="bg-blue-600/50 p-8 text-white relative shadow-lg">
+        <div class="glass-header p-8 text-white relative shadow-lg">
             <button onclick="toggleMenu()" class="absolute left-8 top-8 menu-btn-large">☰</button>
             <div class="text-center">
                 <h1 id="page-title" class="text-xl font-black tracking-tight">訂餐介面</h1>
-                <div id="status-tag" class="mt-1 text-[8px] tracking-widest uppercase px-3 py-1 rounded-full bg-white/30 inline-block">讀取中...</div>
+                <div id="status-tag" class="mt-1 text-[8px] tracking-widest uppercase px-3 py-1 rounded-full bg-white/30 inline-block">載入中...</div>
             </div>
         </div>
 
         <div id="page-order" class="p-6 space-y-6 flex-1">
-            <div class="flex items-center justify-between bg-white/50 p-5 rounded-3xl border border-white/40 shadow-sm">
+            <div class="flex items-center justify-between glass-card p-5 rounded-3xl">
                 <div class="flex-1">
                     <label class="block text-[10px] font-bold text-gray-500 mb-1">你的座號</label>
                     <select id="seat-select" onchange="updateBalanceDisplay()" class="w-full bg-transparent text-lg font-bold outline-none text-gray-800"></select>
@@ -104,11 +116,11 @@
             </div>
 
             <div>
-                <h3 class="font-black text-gray-800 mb-2 px-1">今日菜單 <span class="text-[10px] text-blue-600 font-normal ml-2">(可複選)</span></h3>
+                <h3 class="font-black text-gray-800 mb-2 px-1 text-sm">今日菜單</h3>
                 <div id="menu-list" class="space-y-2 max-h-[35vh] overflow-y-auto pr-2 custom-scrollbar"></div>
             </div>
 
-            <div class="bg-blue-50/50 p-5 rounded-3xl border border-blue-200/50">
+            <div class="bg-blue-100/50 p-5 rounded-3xl border border-blue-200/30">
                 <div class="flex justify-between items-center text-blue-900 font-bold">
                     <span>合計金額</span>
                     <span id="total-amount" class="text-3xl font-black text-blue-700">$ 0</span>
@@ -116,21 +128,21 @@
             </div>
             
             <div class="space-y-3">
-                <button id="order-submit-btn" onclick="sendOrder()" class="w-full bg-blue-600/70 text-white font-bold py-4 rounded-2xl shadow-lg active:scale-95 transition-all text-lg">確認送出訂單</button>
-                <button id="cancel-orders-btn" onclick="cancelAllOrders()" class="w-full text-gray-600 font-bold py-2 text-xs hover:text-red-600 transition-colors">取消我今日所有訂單</button>
+                <button id="order-submit-btn" onclick="sendOrder()" class="w-full glass-button text-white font-bold py-4 rounded-2xl shadow-lg active:scale-95 transition-all text-lg">確認送出訂單</button>
+                <button id="cancel-orders-btn" onclick="cancelAllOrders()" class="w-full text-gray-600 font-bold py-2 text-xs hover:text-red-600 transition-colors">取消我今日所有訂單 (限 12:00 前)</button>
             </div>
         </div>
 
         <div id="page-stats" class="hidden p-6 space-y-4 flex-1">
             <h2 class="font-black text-gray-800 px-1">📊 今日統計</h2>
-            <div class="bg-white/50 border border-white/40 rounded-3xl overflow-hidden shadow-sm">
+            <div class="glass-card rounded-3xl overflow-hidden shadow-sm">
                 <table class="w-full text-left text-sm">
-                    <thead class="bg-white/40 text-[10px] text-gray-500 font-bold uppercase">
+                    <thead class="bg-white/30 text-[10px] text-gray-500 font-bold uppercase">
                         <tr><th class="p-4">餐點</th><th class="p-4 text-center">量</th><th class="p-4 text-right">小計</th></tr>
                     </thead>
-                    <tbody id="stats-table-body" class="divide-y divide-white/20"></tbody>
+                    <tbody id="stats-table-body" class="divide-y divide-white/10 text-gray-700"></tbody>
                     <tfoot class="bg-blue-100/50 font-black text-blue-800">
-                        <tr><td class="p-4">總結（不含飲料）</td><td id="total-qty" class="p-4 text-center">0</td><td id="total-sum" class="p-4 text-right">$ 0</td></tr>
+                        <tr><td class="p-4">總結</td><td id="total-qty" class="p-4 text-center">0</td><td id="total-sum" class="p-4 text-right">$ 0</td></tr>
                     </tfoot>
                 </table>
             </div>
@@ -138,31 +150,30 @@
 
         <div id="page-admin" class="hidden p-6 space-y-6 flex-1">
             <div id="admin-login" class="space-y-4 py-10 text-center">
-                <h2 class="font-black text-gray-800">管理授權</h2>
-                <input type="password" id="admin-key-input" class="w-full p-4 rounded-2xl border border-white/40 text-center text-2xl tracking-widest outline-none" placeholder="****">
-                <button onclick="unlockAdmin()" class="w-full bg-red-600/60 text-white font-bold py-4 rounded-2xl">確認登入</button>
+                <h2 class="font-black text-gray-800">管理密鑰</h2>
+                <input type="password" id="admin-key-input" class="w-full p-4 rounded-2xl text-center text-2xl tracking-widest outline-none" placeholder="****">
+                <button onclick="unlockAdmin()" class="w-full glass-button-red text-white font-bold py-4 rounded-2xl">確認登入</button>
             </div>
             
             <div id="admin-content" class="hidden space-y-6">
-                <div class="bg-white/50 p-5 rounded-3xl shadow-sm space-y-3 border border-orange-200/50">
-                    <h3 class="font-black text-orange-800 border-b border-white/20 pb-2">⚠️ 訂餐限制解鎖</h3>
-                    <button onclick="triggerEmergencyUnlock()" class="w-full bg-orange-500/70 text-white py-3 rounded-xl font-bold">解除今日限制</button>
+                <div class="glass-card p-5 rounded-3xl space-y-3 border-orange-200/30">
+                    <h3 class="font-black text-orange-800 border-b border-white/20 pb-2 text-sm">⚠️ 訂餐限制解鎖</h3>
+                    <button onclick="triggerEmergencyUnlock()" class="w-full bg-orange-500/50 text-white py-3 rounded-xl font-bold">解除今日限制</button>
                 </div>
 
-                <div class="bg-white/50 p-5 rounded-3xl shadow-sm space-y-3 border border-white/40">
-                    <h3 class="font-black text-gray-800 border-b border-white/20 pb-2">🍱 修改價格</h3>
+                <div class="glass-card p-5 rounded-3xl space-y-3">
+                    <h3 class="font-black text-gray-800 border-b border-white/20 pb-2 text-sm">🍱 修改價格</h3>
                     <div id="admin-menu-edit" class="space-y-2 max-h-40 overflow-y-auto custom-scrollbar"></div>
-                    <button onclick="updateMenu()" class="w-full bg-blue-600/60 text-white py-3 rounded-xl font-bold">更新菜單</button>
+                    <button onclick="updateMenu()" class="w-full glass-button text-white py-3 rounded-xl font-bold">更新菜單</button>
                 </div>
 
-                <div class="bg-white/50 p-5 rounded-3xl shadow-sm space-y-4 border border-green-200/50">
-                    <h3 class="font-black text-green-800 border-b border-white/20 pb-2">💰 用戶加值</h3>
-                    <select id="recharge-seat" onchange="calcRecharge()" class="w-full p-3 rounded-xl border border-white/30 font-bold outline-none"></select>
-                    <input type="number" id="recharge-amount" oninput="calcRecharge()" class="w-full p-3 rounded-xl border border-white/30 outline-none" placeholder="金額">
-                    
-                    <div class="grid grid-cols-2 gap-2 bg-white/30 p-3 rounded-xl text-center text-xs border border-white/20">
-                        <div><p class="text-gray-500 font-bold">目前</p><p id="preview-current" class="font-black text-gray-700">$ --</p></div>
-                        <div class="border-l border-white/20"><p class="text-gray-500 font-bold">後</p><p id="preview-after" class="font-black text-green-700">--</p></div>
+                <div class="glass-card p-5 rounded-3xl space-y-4 border-green-200/30">
+                    <h3 class="font-black text-green-800 border-b border-white/20 pb-2 text-sm">💰 用戶加值</h3>
+                    <select id="recharge-seat" onchange="calcRecharge()" class="w-full p-3 rounded-xl font-bold outline-none"></select>
+                    <input type="number" id="recharge-amount" oninput="calcRecharge()" class="w-full p-3 rounded-xl outline-none" placeholder="輸入金額">
+                    <div class="grid grid-cols-2 gap-2 bg-white/30 p-3 rounded-xl text-center text-xs">
+                        <div><p class="text-gray-500">目前餘額</p><p id="preview-current" class="font-black text-gray-700">$ --</p></div>
+                        <div class="border-l border-white/20"><p class="text-gray-500">加值後</p><p id="preview-after" class="font-black text-green-700">--</p></div>
                     </div>
                     <button id="recharge-btn" onclick="rechargeUser()" disabled class="w-full bg-gray-400/50 text-white py-3 rounded-xl font-bold">確認加值</button>
                 </div>
@@ -171,7 +182,6 @@
     </div>
 
     <script>
-        // JS 部分邏輯與 V3.4.2 完全相同，僅微調 CSS 類別控制
         const API_URL = "https://script.google.com/macros/s/AKfycbzbQYBYyKi_sDdd-LKv5fasV0PUXXNAN7a9RTsnS9Dq_SBgUmO0vpb7a0dx2B8DFVt2oA/exec"; 
         let globalData = {};
         let selectedItems = [];
@@ -189,7 +199,7 @@
         function renderBaseUI() {
             const seatSelects = [document.getElementById('seat-select'), document.getElementById('recharge-seat')];
             seatSelects.forEach(s => {
-                s.innerHTML = '<option value="">座號</option>';
+                s.innerHTML = '<option value="">請選擇座號</option>';
                 Object.keys(globalData.balances).sort((a,b)=>a-b).forEach(num => {
                     const opt = document.createElement('option'); opt.value = num; opt.innerText = num + " 號";
                     s.appendChild(opt);
@@ -200,9 +210,9 @@
             menuBox.innerHTML = "";
             globalData.menu.forEach(item => {
                 const div = document.createElement('div');
-                div.className = "flex justify-between items-center p-4 border border-white/30 rounded-2xl cursor-pointer bg-white/50 transition-all hover:bg-white/70";
+                div.className = "flex justify-between items-center p-4 border border-white/20 rounded-2xl cursor-pointer bg-white/30 hover:bg-white/50 transition-all";
                 div.onclick = () => toggleItem(item, div);
-                div.innerHTML = `<span class="font-bold text-gray-800">${item.name}</span><span class="font-black text-gray-500">$${item.price}</span>`;
+                div.innerHTML = `<span class="font-bold text-gray-800">${item.name}</span><span class="font-black text-gray-600">$${item.price}</span>`;
                 menuBox.appendChild(div);
             });
 
@@ -211,7 +221,7 @@
             for (let i = 1; i < 16; i++) {
                 const row = globalData.stats[i] || { name: "", qty: 0, total: 0 };
                 const tr = document.createElement('tr');
-                tr.innerHTML = `<td class="p-4 font-bold text-gray-700">${row.name || "---"}</td><td class="p-4 text-center">${row.qty || 0}</td><td class="p-4 text-right">$${row.total || 0}</td>`;
+                tr.innerHTML = `<td class="p-4 font-bold text-gray-700">${row.name || "---"}</td><td class="p-4 text-center font-black">${row.qty || 0}</td><td class="p-4 text-right font-black">$${row.total || 0}</td>`;
                 tableBody.appendChild(tr);
             }
             document.getElementById('total-qty').innerText = globalData.stats[16]?.qty || 0;
@@ -227,12 +237,12 @@
             const isUnlocked = globalData.emergencyUnlocked === true;
 
             if (isUnlocked) {
-                tag.innerText = "已解除訂餐限制";
+                tag.innerText = "已暫時解鎖";
                 tag.style.backgroundColor = "rgba(168, 85, 247, 0.5)"; 
                 orderBtn.classList.remove('disabled-btn');
-                if (now.getHours() >= 12) cancelBtn.innerText = "取消訂單 (12:00後解鎖模式)";
+                if (now.getHours() >= 12) cancelBtn.innerText = "取消我今日所有訂單 (限 12:00 以後)";
             } else {
-                tag.innerText = isMenuUpdated ? "菜單已更新" : "菜單尚未更新";
+                tag.innerText = isMenuUpdated ? "菜單已更新" : "未更新";
                 tag.style.backgroundColor = isMenuUpdated ? "rgba(34, 197, 94, 0.5)" : "rgba(249, 115, 22, 0.5)";
                 if (!isMenuUpdated) orderBtn.classList.add('disabled-btn');
             }
@@ -241,8 +251,8 @@
             adminMenu.innerHTML = "";
             globalData.menu.forEach(item => {
                 const div = document.createElement('div');
-                div.className = "flex items-center gap-2 bg-white/30 p-2 rounded-lg text-xs border border-white/20";
-                div.innerHTML = `<span class="flex-1 font-bold">${item.name}</span><input type="number" data-id="${item.id}" class="w-16 p-1 border rounded text-right price-input" value="${item.price}">`;
+                div.className = "flex items-center gap-2 bg-white/20 p-2 rounded-lg text-xs";
+                div.innerHTML = `<span class="flex-1 font-bold text-gray-700">${item.name}</span><input type="number" data-id="${item.id}" class="w-16 p-1 border rounded text-right price-input" value="${item.price}">`;
                 adminMenu.appendChild(div);
             });
         }
@@ -251,12 +261,12 @@
             const idx = selectedItems.findIndex(i => i.id === item.id);
             if(idx > -1) {
                 selectedItems.splice(idx, 1);
-                div.classList.replace('border-blue-500', 'border-white/30');
-                div.classList.replace('bg-blue-100/60', 'bg-white/50');
+                div.classList.replace('border-blue-500', 'border-white/20');
+                div.classList.replace('bg-blue-200/50', 'bg-white/30');
             } else {
                 selectedItems.push(item);
-                div.classList.replace('border-white/30', 'border-blue-500');
-                div.classList.replace('bg-white/50', 'bg-blue-100/60');
+                div.classList.replace('border-white/20', 'border-blue-500');
+                div.classList.replace('bg-white/30', 'bg-blue-200/50');
             }
             document.getElementById('total-amount').innerText = `$ ${selectedItems.reduce((s,i)=>s+Number(i.price), 0)}`;
         }
@@ -275,7 +285,7 @@
             const btn = document.getElementById('recharge-btn');
             if(seat && val > 0) {
                 res.innerText = `$ ${cur + val}`;
-                btn.disabled = false; btn.style.backgroundColor = "rgba(34, 197, 94, 0.7)";
+                btn.disabled = false; btn.style.backgroundColor = "rgba(34, 197, 94, 0.5)";
             } else {
                 res.innerText = "--";
                 btn.disabled = true; btn.style.backgroundColor = "rgba(156, 163, 175, 0.5)";
@@ -283,7 +293,7 @@
         }
 
         async function sendOrder() {
-            if (!isMenuUpdated && !globalData.emergencyUnlocked) return alert("目前鎖定訂餐！");
+            if (!isMenuUpdated && !globalData.emergencyUnlocked) return alert("目前鎖定中！");
             const seat = document.getElementById('seat-select').value;
             if(!seat || selectedItems.length === 0) return alert("資訊不完整");
             if(!confirm(`確認訂購？`)) return;
@@ -292,7 +302,7 @@
 
         async function cancelAllOrders() {
             const seat = document.getElementById('seat-select').value;
-            if(!seat || !confirm(`確定取消訂單？`)) return;
+            if(!seat || !confirm(`確定取消？`)) return;
             callAPI({ action: 'cancel', seat: seat });
         }
 
@@ -305,7 +315,7 @@
         }
 
         async function triggerEmergencyUnlock() {
-            if(confirm("確定解除今日限制？")) callAPI({ action: 'triggerUnlock', key: adminKey });
+            if(confirm("確定解除限制？")) callAPI({ action: 'triggerUnlock', key: adminKey });
         }
 
         async function rechargeUser() {
