@@ -53,7 +53,7 @@
 
     <div id="loading-screen" class="fixed inset-0 bg-blue-600/50 z-[100] hidden flex flex-col items-center justify-center text-white backdrop-blur-md">
         <div class="w-16 h-16 border-4 border-white/30 border-t-white rounded-full animate-spin mb-6"></div>
-        <h2 class="text-xl font-black mb-2 tracking-widest uppercase">處理中</h2>
+        <h2 class="text-xl font-black mb-2 tracking-widest uppercase">處理中…</h2>
     
         <p class="text-xs opacity-80 tracking-wide font-medium">請勿關閉頁面</p>
     </div>
@@ -77,8 +77,8 @@
             <div class="space-y-4 max-h-52 overflow-y-auto custom-scrollbar pr-2 text-[11px] text-gray-600">
                 <div>
                     <p class="font-bold text-blue-700">V3.4.2 (Current)</p>
-                    <p>• 高透玻璃邊緣折射視覺效果</p>
-                    <p>• 補齊加值預覽與取消訂單灰底按鈕</p>
+                    <p>• 高透玻璃效果</p>
+                    <p>• 細部美化介面</p>
                 </div>
                 <div>
                     <p class="font-bold text-gray-700">V3.4.1</p>
@@ -154,7 +154,7 @@
             <div id="admin-content" class="hidden space-y-6">
                 <div class="card-bg p-5 rounded-3xl shadow-sm space-y-3 border-orange-200/30">
                     <h3 class="font-black text-orange-800 border-b border-orange-200/30 pb-2">⚠️ 訂餐限制解鎖</h3>
-                    <p class="text-[10px] text-orange-600 leading-relaxed bg-orange-50/30 p-2 rounded-lg">解除今日 12:00 鎖定或「菜單未更新」之限制。解鎖後使用者可強制進行訂餐動作。</p>
+                    <p class="text-[10px] text-orange-600 leading-relaxed bg-orange-50/30 p-2 rounded-lg">解除今日 12:00 鎖定或「菜單未更新」之限制。解鎖後使用者暫時可訂餐。</p>
                     <button onclick="triggerEmergencyUnlock()" class="w-full bg-orange-500/70 text-white py-3 rounded-xl font-bold shadow-md">解除今日訂餐限制</button>
                 </div>
 
@@ -188,7 +188,7 @@
             <div class="card-bg rounded-3xl overflow-hidden shadow-sm">
                 <table class="w-full text-left text-sm">
                     <thead class="bg-white/30 text-[10px] text-gray-500 font-bold uppercase">
-                        <tr><th class="p-4 text-gray-700">餐點</th><th class="p-4 text-center text-gray-700">量</th><th class="p-4 text-right text-gray-700">小計</th></tr>
+                        <tr><th class="p-4 text-gray-700">餐點</th><th class="p-4 text-center text-gray-700">數量</th><th class="p-4 text-right text-gray-700">總價</th></tr>
                     </thead>
                     <tbody id="stats-table-body" class="divide-y divide-white/20"></tbody>
                     <tfoot class="bg-blue-100/50 font-black text-blue-800">
@@ -258,7 +258,7 @@
                 tag.innerText = "管理員解鎖中";
                 tag.style.backgroundColor = "rgba(168, 85, 247, 0.5)"; 
                 orderBtn.classList.remove('disabled-btn');
-                if (now.getHours() >= 12) cancelBtn.innerText = "取消今日訂單 (限 12:00 後)";
+                if (now.getHours() >= 12) cancelBtn.innerText = "取消我今日所有訂單 (限 12:00 後)";
             } else {
                 tag.innerText = isMenuUpdated ? "菜單已更新" : "菜單未更新";
                 tag.style.backgroundColor = isMenuUpdated ? "rgba(34, 197, 94, 0.5)" : "rgba(249, 115, 22, 0.5)";
