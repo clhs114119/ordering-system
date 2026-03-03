@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>119定餐系統 V3.3.8 Beta3</title>
+    <title>119定餐系統 V3.3.9 Beta3</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
@@ -25,7 +25,7 @@
     <div id="side-menu" class="fixed top-0 left-0 h-full w-64 bg-white z-50 shadow-2xl transform -translate-x-full">
         <div class="p-8 bg-blue-600 text-white">
             <h2 class="text-xl font-black italic">119 訂餐系統</h2>
-            <p class="text-[10px] opacity-60 tracking-widest">V3.3.8 Beta3</p>
+            <p class="text-[10px] opacity-60 tracking-widest">V3.3.9 Beta3</p>
         </div>
         <nav class="p-4 space-y-2">
             <button onclick="switchPage('order')" class="w-full text-left p-4 hover:bg-blue-50 rounded-2xl font-bold text-gray-700 flex items-center gap-3">🍱 訂餐介面</button>
@@ -73,7 +73,7 @@
             </div>
             <div class="space-y-3">
                 <button id="order-submit-btn" onclick="sendOrder()" class="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-lg active:scale-95 transition-all text-lg">確認送出訂單</button>
-                <button onclick="cancelAllOrders()" class="w-full text-gray-400 font-bold py-2 text-xs hover:text-red-500">取消我今日所有訂單 (限 12:00 前)</button>
+                <button id="cancel-order-btn" onclick="cancelAllOrders()" class="w-full text-gray-400 font-bold py-2 text-xs hover:text-red-500">取消我今日所有訂單 (限 12:00 前)</button>
             </div>
         </div>
 
@@ -98,35 +98,21 @@
                 <input type="password" id="admin-key-input" class="w-full p-4 rounded-2xl border-2 border-gray-200 text-center text-2xl tracking-widest" placeholder="****">
                 <button onclick="unlockAdmin()" class="w-full bg-red-600 text-white font-bold py-4 rounded-2xl">確認登入</button>
             </div>
-
             <div id="admin-content" class="hidden space-y-6">
                 <div class="bg-white p-5 rounded-3xl shadow-sm space-y-4 border-2 border-orange-100">
                     <h3 class="font-black text-orange-700 border-b pb-2">⚠️ 訂餐限制解鎖</h3>
-                    <p class="text-[10px] text-orange-400">解除今日 12:00 鎖定或「菜單未更新」之限制。解鎖後可強制訂餐。</p>
-                    <button onclick="triggerEmergencyUnlock()" class="w-full bg-orange-500 text-white py-3 rounded-xl font-bold active:scale-95 transition-all">解除今日訂餐限制</button>
+                    <button onclick="triggerEmergencyUnlock()" class="w-full bg-orange-500 text-white py-3 rounded-xl font-bold">解除今日訂餐限制</button>
                 </div>
-
                 <div class="bg-white p-5 rounded-3xl shadow-sm space-y-4">
                     <h3 class="font-black text-gray-700 border-b pb-2">🍱 修改價格</h3>
                     <div id="admin-menu-edit" class="space-y-2 max-h-40 overflow-y-auto custom-scrollbar"></div>
                     <button onclick="updateMenu()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold">更新菜單</button>
                 </div>
-
                 <div class="bg-white p-5 rounded-3xl shadow-sm space-y-4 border-2 border-green-100">
                     <h3 class="font-black text-green-700 border-b pb-2">💰 用戶加值</h3>
                     <select id="recharge-seat" onchange="calcRecharge()" class="w-full p-3 rounded-xl border border-gray-200 font-bold"></select>
-                    <input type="number" id="recharge-amount" oninput="calcRecharge()" class="w-full p-3 rounded-xl border border-gray-200" placeholder="加值金額 (必須大於0)">
-                    <div class="grid grid-cols-2 gap-2 bg-gray-50 p-3 rounded-xl text-center text-xs">
-                        <div><p class="text-gray-400">目前餘額</p><p id="preview-current" class="font-black text-gray-600">$ --</p></div>
-                        <div class="border-l border-gray-200"><p class="text-gray-400">加值後金額</p><p id="preview-after" class="font-black text-green-600">--</p></div>
-                    </div>
+                    <input type="number" id="recharge-amount" oninput="calcRecharge()" class="w-full p-3 rounded-xl border border-gray-200" placeholder="加值金額">
                     <button id="recharge-btn" onclick="rechargeUser()" disabled class="w-full bg-gray-300 text-white py-3 rounded-xl font-bold">確認加值</button>
-                </div>
-
-                <div class="bg-white p-5 rounded-3xl shadow-sm space-y-4">
-                    <h3 class="font-black text-gray-700 border-b pb-2">🔑 修改密鑰</h3>
-                    <input type="text" id="new-key-input" class="w-full p-3 rounded-xl border border-gray-200" placeholder="新密鑰">
-                    <button onclick="updateKey()" class="w-full bg-gray-800 text-white py-3 rounded-xl font-bold">儲存密鑰</button>
                 </div>
             </div>
         </div>
@@ -144,10 +130,27 @@
                 const res = await fetch(API_URL);
                 globalData = await res.json();
                 renderBaseUI();
+                updateCancelButtonText(); // 初始化按鈕文字
             } catch (e) { alert("連線失敗"); }
         }
 
+        // 新增：根據解鎖狀態與時間更新取消按鈕文字
+        function updateCancelButtonText() {
+            const cancelBtn = document.getElementById('cancel-order-btn');
+            const now = new Date();
+            const hour = now.getHours();
+            
+            // 如果後端標記今日已解鎖 且 現在已經 12:00 或之後
+            if (globalData.isUnlocked && hour >= 12) {
+                cancelBtn.innerText = "取消我今日所有訂單 (限今日 12:00 以後)";
+                cancelBtn.classList.replace('text-gray-400', 'text-orange-500');
+            } else {
+                cancelBtn.innerText = "取消我今日所有訂單 (限 12:00 前)";
+            }
+        }
+
         function renderBaseUI() {
+            // 座號渲染
             const seatSelects = [document.getElementById('seat-select'), document.getElementById('recharge-seat')];
             seatSelects.forEach(s => {
                 s.innerHTML = '<option value="">請選擇座號</option>';
@@ -157,6 +160,7 @@
                 });
             });
 
+            // 菜單渲染
             const menuBox = document.getElementById('menu-list');
             menuBox.innerHTML = "";
             globalData.menu.forEach(item => {
@@ -167,6 +171,25 @@
                 menuBox.appendChild(div);
             });
 
+            // 狀態標籤與訂餐按鈕鎖定邏輯
+            const today = new Date().toLocaleDateString('en-CA');
+            const tag = document.getElementById('status-tag');
+            isMenuUpdated = (globalData.lastUpdated === today);
+            
+            tag.innerText = isMenuUpdated ? "今日菜單已更新" : "菜單尚未更新";
+            tag.style.backgroundColor = isMenuUpdated ? "#22c55e" : "#f97316";
+
+            const orderBtn = document.getElementById('order-submit-btn');
+            // 如果沒更新 且 也沒解鎖，則禁用
+            if (!isMenuUpdated && !globalData.isUnlocked) {
+                orderBtn.classList.add('disabled-btn');
+                orderBtn.innerText = "菜單未更新，暫不開放訂餐";
+            } else if (globalData.isUnlocked) {
+                tag.innerText = "管理員已強制解鎖訂餐";
+                tag.style.backgroundColor = "#f59e0b";
+            }
+
+            // 統計與管理員介面其餘邏輯 (同前版)
             const tableBody = document.getElementById('stats-table-body');
             tableBody.innerHTML = "";
             for (let i = 1; i < 16; i++) {
@@ -178,19 +201,6 @@
             document.getElementById('total-qty').innerText = globalData.stats[16]?.qty || 0;
             document.getElementById('total-sum').innerText = `$ ${globalData.stats[16]?.total || 0}`;
 
-            const today = new Date().toLocaleDateString('en-CA');
-            const tag = document.getElementById('status-tag');
-            isMenuUpdated = (globalData.lastUpdated === today);
-            
-            tag.innerText = isMenuUpdated ? "今日菜單已更新" : "菜單尚未更新";
-            tag.style.backgroundColor = isMenuUpdated ? "#22c55e" : "#f97316";
-
-            const orderBtn = document.getElementById('order-submit-btn');
-            if (!isMenuUpdated) {
-                orderBtn.classList.add('disabled-btn');
-                orderBtn.innerText = "菜單未更新，暫不開放訂餐";
-            }
-
             const adminMenu = document.getElementById('admin-menu-edit');
             adminMenu.innerHTML = "";
             globalData.menu.forEach(item => {
@@ -201,6 +211,7 @@
             });
         }
 
+        // 其餘 API 呼叫函式 (toggleItem, sendOrder, cancelAllOrders, callAPI 等) 同 V3.3.8 ...
         function toggleItem(item, div) {
             const idx = selectedItems.findIndex(i => i.id === item.id);
             if(idx > -1) {
@@ -219,8 +230,8 @@
         }
 
         async function sendOrder() {
-            if (!isMenuUpdated) {
-                alert("今日菜單尚未更新，目前鎖定訂餐！");
+            if (!isMenuUpdated && !globalData.isUnlocked) {
+                alert("目前鎖定訂餐！");
                 return;
             }
             const seat = document.getElementById('seat-select').value;
@@ -233,7 +244,9 @@
 
         async function cancelAllOrders() {
             const seat = document.getElementById('seat-select').value;
-            if(!seat || !confirm(`確定取消 ${seat} 號今日所有訂單？`)) return;
+            if(!seat) return alert("請先選擇座號");
+            const btnText = document.getElementById('cancel-order-btn').innerText;
+            if(!confirm(`確定執行「${btnText}」嗎？`)) return;
             callAPI({ action: 'cancel', seat: seat });
         }
 
@@ -247,40 +260,8 @@
         }
 
         async function triggerEmergencyUnlock() {
-            if(!confirm("確定強制解鎖嗎？這將允許超時訂餐並跳過菜單更新檢查。")) return;
+            if(!confirm("確定強制解鎖嗎？這將允許超時訂餐並更換取消規則。")) return;
             callAPI({ action: 'triggerUnlock', key: adminKey });
-        }
-
-        function calcRecharge() {
-            const seat = document.getElementById('recharge-seat').value;
-            const val = Number(document.getElementById('recharge-amount').value);
-            const cur = globalData.balances[seat] || 0;
-            document.getElementById('preview-current').innerText = seat ? `$ ${cur}` : "$ --";
-            const res = document.getElementById('preview-after');
-            const btn = document.getElementById('recharge-btn');
-            if(seat && val > 0) {
-                res.innerText = `$ ${cur + val}`;
-                btn.disabled = false; btn.classList.replace('bg-gray-300', 'bg-green-600');
-            } else {
-                res.innerText = "---";
-                btn.disabled = true; btn.classList.replace('bg-green-600', 'bg-gray-300');
-            }
-        }
-
-        async function rechargeUser() {
-            const seat = document.getElementById('recharge-seat').value;
-            const amt = document.getElementById('recharge-amount').value;
-            callAPI({ action: 'recharge', seat: seat, amount: amt, key: adminKey });
-        }
-
-        async function updateMenu() {
-            const newMenu = Array.from(document.querySelectorAll('.price-input')).map(i=>({id: i.dataset.id, price: i.value}));
-            callAPI({ action: 'updateMenu', newMenu: newMenu, key: adminKey });
-        }
-
-        async function updateKey() {
-            const nk = document.getElementById('new-key-input').value;
-            if(nk) callAPI({ action: 'updateKey', newKey: nk, key: adminKey });
         }
 
         async function callAPI(payload) {
