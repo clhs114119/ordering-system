@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>119定餐系統 V3.3.9 Beta3</title>
+    <title>119定餐系統 V3.4.1</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
-        #side-menu { transition: transform 0.3s ease-in-out; }
+        #side-menu { transition: transform 0.3s ease-in-out; display: flex; flex-direction: column; }
         .menu-btn-large { padding: 25px; margin: -25px; font-size: 2rem; }
         .disabled-btn { background-color: #cbd5e1 !important; cursor: not-allowed !important; transform: none !important; opacity: 0.7; }
     </style>
@@ -23,16 +23,43 @@
 
     <div id="menu-overlay" onclick="toggleMenu()" class="fixed inset-0 bg-black/50 z-40 hidden"></div>
     <div id="side-menu" class="fixed top-0 left-0 h-full w-64 bg-white z-50 shadow-2xl transform -translate-x-full">
-        <div class="p-8 bg-blue-600 text-white">
+        <div class="p-8 bg-blue-600 text-white shrink-0">
             <h2 class="text-xl font-black italic">119 訂餐系統</h2>
-            <p class="text-[10px] opacity-60 tracking-widest">V3.3.9 Beta3</p>
+            <p class="text-[10px] opacity-60 tracking-widest">V3.4.1 Stable</p>
         </div>
-        <nav class="p-4 space-y-2">
+        
+        <nav class="p-4 space-y-2 flex-grow">
             <button onclick="switchPage('order')" class="w-full text-left p-4 hover:bg-blue-50 rounded-2xl font-bold text-gray-700 flex items-center gap-3">🍱 訂餐介面</button>
             <button onclick="switchPage('stats')" class="w-full text-left p-4 hover:bg-blue-50 rounded-2xl font-bold text-gray-700 flex items-center gap-3">📊 今日統計</button>
             <div class="border-t border-gray-100 my-4"></div>
             <button onclick="switchPage('admin')" class="w-full text-left p-4 hover:bg-red-50 rounded-2xl font-bold text-red-600 flex items-center gap-3">⚙️ 管理員頁面</button>
         </nav>
+
+        <div class="p-6 bg-slate-50 border-t border-gray-100 shrink-0">
+            <h3 class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Update Log</h3>
+            <div class="space-y-3 max-h-40 overflow-y-auto custom-scrollbar pr-2 text-[11px] leading-relaxed text-gray-500">
+                <div>
+                    <p class="font-bold text-blue-600">V3.4.1 (Current)</p>
+                    <p>• 加入側邊欄更新日誌</p>
+                    <p>• 優化選單介面佈局</p>
+                </div>
+                <div>
+                    <p class="font-bold text-gray-700">V3.4.0</p>
+                    <p>• 強化後端注入攻擊防護</p>
+                    <p>• 新增輸入欄位安全性過濾</p>
+                </div>
+                <div>
+                    <p class="font-bold text-gray-700">V3.3.9</p>
+                    <p>• 動態取消訂單邏輯優化</p>
+                    <p>• 臨時解鎖狀態視覺化</p>
+                </div>
+                <div>
+                    <p class="font-bold text-gray-700">V3.3.8</p>
+                    <p>• 新增「可複選餐點」提示文字</p>
+                    <p>• 修復統計頁面顯示錯誤</p>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="max-w-md w-full bg-white shadow-2xl min-h-screen sm:min-h-0 sm:rounded-[2.5rem] sm:my-4 overflow-hidden flex flex-col relative border border-gray-100">
@@ -129,7 +156,7 @@
     </div>
 
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbzbQYBYyKi_sDdd-LKv5fasV0PUXXNAN7a9RTsnS9Dq_SBgUmO0vpb7a0dx2B8DFVt2oA/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycbzbQYBYyKi_sDdd-LKv5fasV0PUXXNAN7a9RTsnS9Dq_SBgUmO0vpb7a0dx2B8DFVt2oA/exec"; 
         let globalData = {};
         let selectedItems = [];
         let adminKey = ""; 
@@ -144,7 +171,6 @@
         }
 
         function renderBaseUI() {
-            // 座號渲染
             const seatSelects = [document.getElementById('seat-select'), document.getElementById('recharge-seat')];
             seatSelects.forEach(s => {
                 s.innerHTML = '<option value="">請選擇座號</option>';
@@ -154,7 +180,6 @@
                 });
             });
 
-            // 菜單渲染
             const menuBox = document.getElementById('menu-list');
             menuBox.innerHTML = "";
             globalData.menu.forEach(item => {
@@ -165,7 +190,6 @@
                 menuBox.appendChild(div);
             });
 
-            // 統計渲染
             const tableBody = document.getElementById('stats-table-body');
             tableBody.innerHTML = "";
             for (let i = 1; i < 16; i++) {
@@ -177,7 +201,6 @@
             document.getElementById('total-qty').innerText = globalData.stats[16]?.qty || 0;
             document.getElementById('total-sum').innerText = `$ ${globalData.stats[16]?.total || 0}`;
 
-            // --- 狀態標籤與按鈕邏輯 ---
             const today = new Date().toLocaleDateString('en-CA');
             const now = new Date();
             const isAfter12 = now.getHours() >= 12;
@@ -186,11 +209,11 @@
             const orderBtn = document.getElementById('order-submit-btn');
             
             isMenuUpdated = (globalData.lastUpdated === today);
-            const isUnlocked = globalData.emergencyUnlocked === true; // 需配合後端回傳此欄位
+            const isUnlocked = globalData.emergencyUnlocked === true;
 
             if (isUnlocked) {
                 tag.innerText = "管理員已暫時解鎖訂餐";
-                tag.style.backgroundColor = "#a855f7"; // 紫色
+                tag.style.backgroundColor = "#a855f7"; 
                 orderBtn.classList.remove('disabled-btn');
                 orderBtn.innerText = "確認送出訂單";
                 if (isAfter12) {
@@ -206,7 +229,6 @@
                 cancelBtn.innerText = "取消我今日所有訂單 (限 12:00 前)";
             }
 
-            // 管理員菜單編輯
             const adminMenu = document.getElementById('admin-menu-edit');
             adminMenu.innerHTML = "";
             globalData.menu.forEach(item => {
@@ -217,7 +239,6 @@
             });
         }
 
-        // 其餘 API 呼叫函式與切換頁面邏輯保持不變
         function toggleItem(item, div) {
             const idx = selectedItems.findIndex(i => i.id === item.id);
             if(idx > -1) {
@@ -319,7 +340,10 @@
         }
 
         function switchPage(p) {
-            ['order', 'stats', 'admin'].forEach(id => document.getElementById('page-'+id).classList.toggle('hidden', id !== p));
+            ['order', 'stats', 'admin'].forEach(id => {
+                const el = document.getElementById('page-'+id);
+                if (el) el.classList.toggle('hidden', id !== p);
+            });
             document.getElementById('page-title').innerText = (p === 'order') ? '訂餐介面' : (p === 'stats' ? '今日統計' : '管理員後台');
             toggleMenu();
         }
