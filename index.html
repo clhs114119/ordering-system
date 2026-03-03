@@ -3,14 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>119定餐系統 V3.3.7 Beta3</title>
+    <title>119定餐系統 V3.3.8 Beta3</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
         #side-menu { transition: transform 0.3s ease-in-out; }
         .menu-btn-large { padding: 25px; margin: -25px; font-size: 2rem; }
-        .disabled-btn { background-color: #cbd5e1 !important; cursor: not-allowed !important; transform: none !important; }
+        .disabled-btn { background-color: #cbd5e1 !important; cursor: not-allowed !important; transform: none !important; opacity: 0.6; }
+        .item-selected { border-color: #2563eb !important; background-color: #eff6ff !important; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen flex justify-center font-sans overflow-x-hidden">
@@ -25,7 +26,7 @@
     <div id="side-menu" class="fixed top-0 left-0 h-full w-64 bg-white z-50 shadow-2xl transform -translate-x-full">
         <div class="p-8 bg-blue-600 text-white">
             <h2 class="text-xl font-black italic">119 訂餐系統</h2>
-            <p class="text-[10px] opacity-60 tracking-widest">V3.3.7 Beta3</p>
+            <p class="text-[10px] opacity-60 tracking-widest">V3.3.8 Beta3</p>
         </div>
         <nav class="p-4 space-y-2">
             <button onclick="switchPage('order')" class="w-full text-left p-4 hover:bg-blue-50 rounded-2xl font-bold text-gray-700 flex items-center gap-3">🍱 訂餐介面</button>
@@ -56,7 +57,9 @@
                     <div id="balance-val" class="text-xl font-black text-blue-600">$ --</div>
                 </div>
             </div>
+            
             <div id="menu-list" class="space-y-2 max-h-[35vh] overflow-y-auto pr-2 custom-scrollbar"></div>
+
             <div class="bg-blue-50 p-5 rounded-3xl border border-blue-100">
                 <div class="flex justify-between items-center text-blue-900 font-bold">
                     <span>合計金額</span>
@@ -94,7 +97,7 @@
             <div id="admin-content" class="hidden space-y-6">
                 <div class="bg-white p-5 rounded-3xl shadow-sm space-y-4 border-2 border-orange-100">
                     <h3 class="font-black text-orange-700 border-b pb-2">⚠️ 訂餐限制解鎖</h3>
-                    <p class="text-[10px] text-orange-400">解除今日 12:00 鎖定或「菜單未更新」之限制。解鎖後可強制訂餐。</p>
+                    <p class="text-[10px] text-orange-400">解除今日 12:00 鎖定或「菜單未更新」限制。解鎖後將強制允許訂餐。</p>
                     <button onclick="triggerEmergencyUnlock()" class="w-full bg-orange-500 text-white py-3 rounded-xl font-bold active:scale-95 transition-all">解除今日訂餐限制</button>
                 </div>
 
@@ -107,7 +110,7 @@
                 <div class="bg-white p-5 rounded-3xl shadow-sm space-y-4 border-2 border-green-100">
                     <h3 class="font-black text-green-700 border-b pb-2">💰 用戶加值</h3>
                     <select id="recharge-seat" onchange="calcRecharge()" class="w-full p-3 rounded-xl border border-gray-200 font-bold"></select>
-                    <input type="number" id="recharge-amount" oninput="calcRecharge()" class="w-full p-3 rounded-xl border border-gray-200" placeholder="加值金額 (必須大於0)">
+                    <input type="number" id="recharge-amount" oninput="calcRecharge()" class="w-full p-3 rounded-xl border border-gray-200" placeholder="加值金額">
                     <div class="grid grid-cols-2 gap-2 bg-gray-50 p-3 rounded-xl text-center text-xs">
                         <div><p class="text-gray-400">目前餘額</p><p id="preview-current" class="font-black text-gray-600">$ --</p></div>
                         <div class="border-l border-gray-200"><p class="text-gray-400">加值後金額</p><p id="preview-after" class="font-black text-green-600">--</p></div>
@@ -127,7 +130,7 @@
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbzbQYBYyKi_sDdd-LKv5fasV0PUXXNAN7a9RTsnS9Dq_SBgUmO0vpb7a0dx2B8DFVt2oA/exec";
         let globalData = {};
-        let selectedItems = [];
+        let selectedItems = []; // 存儲複選餐點
         let adminKey = ""; 
         let isMenuUpdated = false;
 
@@ -140,6 +143,7 @@
         }
 
         function renderBaseUI() {
+            // 渲染座號
             const seatSelects = [document.getElementById('seat-select'), document.getElementById('recharge-seat')];
             seatSelects.forEach(s => {
                 s.innerHTML = '<option value="">請選擇座號</option>';
@@ -149,16 +153,19 @@
                 });
             });
 
+            // 渲染菜單 (複選邏輯)
             const menuBox = document.getElementById('menu-list');
             menuBox.innerHTML = "";
             globalData.menu.forEach(item => {
                 const div = document.createElement('div');
-                div.className = "flex justify-between items-center p-4 border-2 border-gray-50 rounded-2xl cursor-pointer bg-white transition-all";
+                div.className = "flex justify-between items-center p-4 border-2 border-gray-50 rounded-2xl cursor-pointer bg-white transition-all hover:bg-slate-50";
+                div.id = `item-${item.id}`;
                 div.onclick = () => toggleItem(item, div);
                 div.innerHTML = `<span class="font-bold text-gray-700">${item.name}</span><span class="font-black text-gray-400">$${item.price}</span>`;
                 menuBox.appendChild(div);
             });
 
+            // 統計表格
             const tableBody = document.getElementById('stats-table-body');
             tableBody.innerHTML = "";
             for (let i = 1; i < 16; i++) {
@@ -170,7 +177,7 @@
             document.getElementById('total-qty').innerText = globalData.stats[16]?.qty || 0;
             document.getElementById('total-sum').innerText = `$ ${globalData.stats[16]?.total || 0}`;
 
-            // 核心邏輯：檢查菜單日期
+            // 菜單日期檢查
             const today = new Date().toLocaleDateString('en-CA');
             const tag = document.getElementById('status-tag');
             isMenuUpdated = (globalData.lastUpdated === today);
@@ -178,13 +185,13 @@
             tag.innerText = isMenuUpdated ? "今日菜單已更新" : "菜單尚未更新";
             tag.style.backgroundColor = isMenuUpdated ? "#22c55e" : "#f97316";
 
-            // 如果菜單沒更新，按鈕變灰色
             const orderBtn = document.getElementById('order-submit-btn');
             if (!isMenuUpdated) {
                 orderBtn.classList.add('disabled-btn');
-                orderBtn.innerText = "菜單未更新，暫不開放訂餐";
+                orderBtn.innerText = "菜單未更新，暫不開放";
             }
 
+            // 管理員菜單編輯
             const adminMenu = document.getElementById('admin-menu-edit');
             adminMenu.innerHTML = "";
             globalData.menu.forEach(item => {
@@ -195,16 +202,18 @@
             });
         }
 
+        // 複選切換函式
         function toggleItem(item, div) {
-            const idx = selectedItems.findIndex(i => i.id === item.id);
-            if(idx > -1) {
-                selectedItems.splice(idx, 1);
-                div.className = "flex justify-between items-center p-4 border-2 border-gray-50 rounded-2xl cursor-pointer bg-white";
+            const index = selectedItems.findIndex(i => i.id === item.id);
+            if (index > -1) {
+                selectedItems.splice(index, 1);
+                div.classList.remove('item-selected');
             } else {
                 selectedItems.push(item);
-                div.className = "flex justify-between items-center p-4 border-2 border-blue-500 rounded-2xl cursor-pointer bg-blue-50 shadow-sm";
+                div.classList.add('item-selected');
             }
-            document.getElementById('total-amount').innerText = `$ ${selectedItems.reduce((s,i)=>s+Number(i.price), 0)}`;
+            const total = selectedItems.reduce((sum, i) => sum + Number(i.price), 0);
+            document.getElementById('total-amount').innerText = `$ ${total}`;
         }
 
         function updateBalanceDisplay() {
@@ -213,17 +222,19 @@
         }
 
         async function sendOrder() {
-            // 雙重檢查：菜單是否更新
             if (!isMenuUpdated) {
-                alert("今日菜單尚未由管理員更新，目前無法訂餐！");
+                alert("今日菜單尚未更新，無法訂餐！");
                 return;
             }
-            
             const seat = document.getElementById('seat-select').value;
-            const total = selectedItems.reduce((s,i)=>s+Number(i.price), 0);
-            if(!seat || selectedItems.length === 0) return alert("資訊不完整");
-            if(total > (globalData.balances[seat] || 0)) return alert("餘額不足");
-            if(!confirm(`確認訂購總計 $${total}？`)) return;
+            const total = selectedItems.reduce((sum, i) => sum + Number(i.price), 0);
+            
+            if (!seat || selectedItems.length === 0) return alert("請選擇座號及至少一項餐點");
+            if (total > (globalData.balances[seat] || 0)) return alert("餘額不足");
+            
+            const names = selectedItems.map(i => i.name).join('、');
+            if (!confirm(`座號：${seat}\n餐點：${names}\n總計：$${total}\n確認送出？`)) return;
+            
             callAPI({ action: 'order', seat: seat, items: selectedItems });
         }
 
@@ -243,7 +254,7 @@
         }
 
         async function triggerEmergencyUnlock() {
-            if(!confirm("確定強制解鎖嗎？這將允許超時訂餐並跳過菜單更新檢查。")) return;
+            if(!confirm("確定解鎖嗎？這將允許跳過時間限制與菜單日期檢查。")) return;
             callAPI({ action: 'triggerUnlock', key: adminKey });
         }
 
@@ -299,7 +310,7 @@
 
         function switchPage(p) {
             ['order', 'stats', 'admin'].forEach(id => document.getElementById('page-'+id).classList.toggle('hidden', id !== p));
-            document.getElementById('page-title').innerText = (p === 'order') ? '訂餐介面' : (p === 'stats' ? '今日統計' : '管理員後台');
+            document.getElementById('page-title').innerText = (p === 'order') ? '訂餐介面' : (p === 'stats' ? '今日統計' : '管理員頁面');
             toggleMenu();
         }
 
