@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+    <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
@@ -187,8 +187,15 @@
         </div>
 
         <div id="page-stats" class="hidden p-6 space-y-4 flex-1 overflow-y-auto">
-            <h2 class="font-black text-gray-800 px-1">📊 今日統計</h2>
+            <div class="flex justify-between items-center px-1">
+                <h2 class="font-black text-gray-800">📊 今日統計</h2>
+                <button onclick="refreshStats()" class="p-2 bg-white/30 hover:bg-white/50 rounded-full transition-all active:rotate-180 duration-500">
+                    <span class="text-lg">🔄</span>
+                </button>
+            </div>
+    
             <div class="card-bg rounded-3xl overflow-hidden shadow-sm">
+                
                 <table class="w-full text-left text-sm">
                     <thead class="bg-white/30 text-[10px] text-gray-500 font-bold uppercase">
                         <tr><th class="p-4 text-gray-700">餐點</th><th class="p-4 text-center text-gray-700">數量</th><th class="p-4 text-right text-gray-700">總價</th></tr>
@@ -326,6 +333,25 @@
             const seat = document.getElementById('seat-select').value;
             if(!seat || !confirm(`確定取消今日訂單？`)) return;
             callAPI({ action: 'cancel', seat: seat });
+        }
+        
+        async function refreshStats() {
+            // 顯示處理中畫面
+            document.getElementById('loading-screen').classList.remove('hidden');
+            try {
+                const res = await fetch(API_URL);
+                globalData = await res.json();
+                // 重新渲染 UI
+                renderBaseUI();
+                // 如果目前在統計頁，確保統計頁內容被更新
+                // (renderBaseUI 已經包含統計表格更新邏輯)
+                console.log("資料已更新");
+            } catch (e) {
+                alert("重新整理失敗");
+            } finally {
+                // 隱藏處理中畫面
+                document.getElementById('loading-screen').classList.add('hidden');
+            }
         }
 
         function unlockAdmin() {
