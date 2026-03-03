@@ -91,27 +91,24 @@
                 </table>
             </div>
         </div>
- 
+
         <div id="page-admin" class="hidden p-6 space-y-6 flex-1 bg-slate-50">
             <div id="admin-login" class="space-y-4 py-10 text-center">
                 <h2 class="font-black text-gray-800">輸入管理密鑰</h2>
                 <input type="password" id="admin-key-input" class="w-full p-4 rounded-2xl border-2 border-gray-200 text-center text-2xl tracking-widest" placeholder="****">
                 <button onclick="unlockAdmin()" class="w-full bg-red-600 text-white font-bold py-4 rounded-2xl">確認登入</button>
             </div>
-
             <div id="admin-content" class="hidden space-y-6">
                 <div class="bg-white p-5 rounded-3xl shadow-sm space-y-4 border-2 border-orange-100">
                     <h3 class="font-black text-orange-700 border-b pb-2">⚠️ 訂餐限制解鎖</h3>
-                    <p class="text-[10px] text-orange-400">解除今日 12:00 鎖定或「菜單未更新」之限制。解鎖後可繼續訂餐。</p>
-                    <button onclick="triggerEmergencyUnlock()" class="w-full bg-orange-500 text-white py-3 rounded-xl font-bold active:scale-95 transition-all">管理員暫時解鎖訂餐</button>
+                    <p class="text-[10px] text-orange-400">解除今日 12:00 鎖定或「菜單未更新」之限制。解鎖後可強制訂餐。</p>
+                    <button onclick="triggerEmergencyUnlock()" class="w-full bg-orange-500 text-white py-3 rounded-xl font-bold active:scale-95 transition-all">解除今日訂餐限制</button>
                 </div>
-
                 <div class="bg-white p-5 rounded-3xl shadow-sm space-y-4">
                     <h3 class="font-black text-gray-700 border-b pb-2">🍱 修改價格</h3>
                     <div id="admin-menu-edit" class="space-y-2 max-h-40 overflow-y-auto custom-scrollbar"></div>
                     <button onclick="updateMenu()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold">更新菜單</button>
                 </div>
-
                 <div class="bg-white p-5 rounded-3xl shadow-sm space-y-4 border-2 border-green-100">
                     <h3 class="font-black text-green-700 border-b pb-2">💰 用戶加值</h3>
                     <select id="recharge-seat" onchange="calcRecharge()" class="w-full p-3 rounded-xl border border-gray-200 font-bold"></select>
@@ -122,7 +119,6 @@
                     </div>
                     <button id="recharge-btn" onclick="rechargeUser()" disabled class="w-full bg-gray-300 text-white py-3 rounded-xl font-bold">確認加值</button>
                 </div>
-
                 <div class="bg-white p-5 rounded-3xl shadow-sm space-y-4">
                     <h3 class="font-black text-gray-700 border-b pb-2">🔑 修改密鑰</h3>
                     <input type="text" id="new-key-input" class="w-full p-3 rounded-xl border border-gray-200" placeholder="新密鑰">
@@ -148,6 +144,7 @@
         }
 
         function renderBaseUI() {
+            // 座號渲染
             const seatSelects = [document.getElementById('seat-select'), document.getElementById('recharge-seat')];
             seatSelects.forEach(s => {
                 s.innerHTML = '<option value="">請選擇座號</option>';
@@ -157,6 +154,7 @@
                 });
             });
 
+            // 菜單渲染
             const menuBox = document.getElementById('menu-list');
             menuBox.innerHTML = "";
             globalData.menu.forEach(item => {
@@ -167,6 +165,7 @@
                 menuBox.appendChild(div);
             });
 
+            // 統計渲染
             const tableBody = document.getElementById('stats-table-body');
             tableBody.innerHTML = "";
             for (let i = 1; i < 16; i++) {
@@ -178,36 +177,36 @@
             document.getElementById('total-qty').innerText = globalData.stats[16]?.qty || 0;
             document.getElementById('total-sum').innerText = `$ ${globalData.stats[16]?.total || 0}`;
 
-            // 時間與狀態邏輯
+            // --- 狀態標籤與按鈕邏輯 ---
+            const today = new Date().toLocaleDateString('en-CA');
             const now = new Date();
-            const hour = now.getHours();
-            const today = now.toLocaleDateString('en-CA');
+            const isAfter12 = now.getHours() >= 12;
             const tag = document.getElementById('status-tag');
-            const orderBtn = document.getElementById('order-submit-btn');
             const cancelBtn = document.getElementById('cancel-orders-btn');
-
+            const orderBtn = document.getElementById('order-submit-btn');
+            
             isMenuUpdated = (globalData.lastUpdated === today);
-            const isUnlocked = globalData.unlockedToday === true; // 需配合後端回傳此欄位
+            const isUnlocked = globalData.emergencyUnlocked === true; // 需配合後端回傳此欄位
 
-            tag.innerText = isMenuUpdated ? "今日菜單已更新" : (isUnlocked ? "已解鎖時限" : "菜單尚未更新");
-            tag.style.backgroundColor = isMenuUpdated ? "#22c55e" : (isUnlocked ? "#3b82f6" : "#f97316");
-
-            // 處理取消按鈕文字
-            if (hour >= 12 && isUnlocked) {
-                cancelBtn.innerText = "取消我今日所有訂單 (限今日 12:00 以後)";
+            if (isUnlocked) {
+                tag.innerText = "管理員已暫時解鎖訂餐";
+                tag.style.backgroundColor = "#a855f7"; // 紫色
+                orderBtn.classList.remove('disabled-btn');
+                orderBtn.innerText = "確認送出訂單";
+                if (isAfter12) {
+                    cancelBtn.innerText = "取消我今日所有訂單 (限今日 12:00 以後)";
+                }
             } else {
+                tag.innerText = isMenuUpdated ? "今日菜單已更新" : "菜單尚未更新";
+                tag.style.backgroundColor = isMenuUpdated ? "#22c55e" : "#f97316";
+                if (!isMenuUpdated) {
+                    orderBtn.classList.add('disabled-btn');
+                    orderBtn.innerText = "菜單未更新，暫不開放訂餐";
+                }
                 cancelBtn.innerText = "取消我今日所有訂單 (限 12:00 前)";
             }
 
-            // 處理訂餐按鈕禁用邏輯
-            if (!isMenuUpdated && !isUnlocked) {
-                orderBtn.classList.add('disabled-btn');
-                orderBtn.innerText = "菜單未更新，暫不開放訂餐";
-            } else {
-                orderBtn.classList.remove('disabled-btn');
-                orderBtn.innerText = "確認送出訂單";
-            }
-
+            // 管理員菜單編輯
             const adminMenu = document.getElementById('admin-menu-edit');
             adminMenu.innerHTML = "";
             globalData.menu.forEach(item => {
@@ -218,6 +217,7 @@
             });
         }
 
+        // 其餘 API 呼叫函式與切換頁面邏輯保持不變
         function toggleItem(item, div) {
             const idx = selectedItems.findIndex(i => i.id === item.id);
             if(idx > -1) {
@@ -236,12 +236,8 @@
         }
 
         async function sendOrder() {
-            const now = new Date();
-            const hour = now.getHours();
-            const today = now.toLocaleDateString('en-CA');
-            const isUnlocked = globalData.unlockedToday === true;
-
-            if (!isUnlocked && globalData.lastUpdated !== today) {
+            const isUnlocked = globalData.emergencyUnlocked === true;
+            if (!isMenuUpdated && !isUnlocked) {
                 alert("今日菜單尚未更新，目前鎖定訂餐！");
                 return;
             }
@@ -255,7 +251,7 @@
 
         async function cancelAllOrders() {
             const seat = document.getElementById('seat-select').value;
-            if(!seat || !confirm(`確定取消 ${seat} 號今日相關訂單？`)) return;
+            if(!seat || !confirm(`確定取消 ${seat} 號今日所有相關訂單？`)) return;
             callAPI({ action: 'cancel', seat: seat });
         }
 
@@ -269,7 +265,7 @@
         }
 
         async function triggerEmergencyUnlock() {
-            if(!confirm("確定執行暫時解鎖嗎？這將允許超時訂餐或跳過更新檢查。")) return;
+            if(!confirm("確定解除今日限制嗎？解除後將變更取消規則並開放訂餐。")) return;
             callAPI({ action: 'triggerUnlock', key: adminKey });
         }
 
