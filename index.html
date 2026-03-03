@@ -32,12 +32,16 @@
         /* 主容器：高透玻璃折射感 */
         .glass-container {
             background-color: rgba(255, 255, 255, 0) !important;
-            backdrop-filter: blur(none); /* 無模糊 */
+            backdrop-filter: blur(none); 
             -webkit-backdrop-filter: blur(0.5px);
-            border: 1px solid rgba(255, 255, 255, 0.1); /* 邊框 */
+    
+            /* 1. 強化邊框：將 0.1 提高到 0.4，並可考慮將 1px 改為 1.5px 或 2px */
+            border: 2px solid rgba(255, 255, 255, 0.3); 
+
             box-shadow: 
-                0 10px 40px rgba(0, 0, 0, 0.05), /* 外陰影 */
-                inset 0 0 20px rgba(255, 255, 255, 0.05); /* 內高光 */
+                0 10px 40px rgba(0, 0, 0, 0.05), 
+                /* 2. 強化邊緣高光：將內高光的 0.05 提高到 0.2，增加邊緣的厚實感 */
+                inset 0 0 15px rgba(255, 255, 255, 0.1); 
         }
 
         /* 元件透明度 */
