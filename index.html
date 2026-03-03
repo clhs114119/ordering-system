@@ -32,12 +32,12 @@
         /* 主容器：高透玻璃折射感 */
         .glass-container {
             background-color: rgba(255, 255, 255, 0) !important;
-            backdrop-filter: blur(3px);
-            -webkit-backdrop-filter: blur(3px);
-            border: 1px solid rgba(255, 255, 255, 0.2); 
+            backdrop-filter: blur(0.5px); /* 極輕微模糊，保留一點點質感 */
+            -webkit-backdrop-filter: blur(0.5px);
+            border: 1px solid rgba(255, 255, 255, 0.05); /* 邊框極淡 */
             box-shadow: 
-                0 10px 40px rgba(0, 0, 0, 0.1),
-                inset 0 0 20px rgba(255, 255, 255, 0.1); 
+                0 10px 40px rgba(0, 0, 0, 0.05), /* 外陰影減弱 */
+                inset 0 0 20px rgba(255, 255, 255, 0.02); /* 內高光極淡 */
         }
 
         /* 元件 50% 透明 */
