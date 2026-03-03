@@ -9,6 +9,12 @@
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
         #side-menu { transition: transform 0.3s ease-in-out; }
+        /* 讓選單按鈕更好點擊 */
+        .menu-btn-large {
+            padding: 20px;
+            margin: -20px;
+            font-size: 1.875rem; /* 30px */
+        }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen flex justify-center font-sans overflow-x-hidden">
@@ -34,17 +40,19 @@
                 <span>📊</span> 今日統計
             </button>
             <div class="border-t border-gray-100 my-4"></div>
-            <p class="text-[10px] text-gray-300 text-center tracking-widest font-bold">119 CLASS SYSTEM</p>
+            <p class="text-[10px] text-gray-300 text-center tracking-widest font-bold uppercase">119 Class System</p>
         </nav>
     </div>
 
     <div class="max-w-md w-full bg-white shadow-2xl min-h-screen sm:min-h-0 sm:rounded-[2.5rem] sm:my-4 overflow-hidden border border-gray-100 flex flex-col relative transition-all">
         
-        <div class="bg-blue-600 p-6 text-white relative shadow-lg">
-            <button onclick="toggleMenu()" class="absolute left-6 top-7 text-2xl hover:scale-110 active:scale-90 transition-transform">☰</button>
+        <div class="bg-blue-600 p-8 text-white relative shadow-lg">
+            <button onclick="toggleMenu()" class="absolute left-8 top-8 menu-btn-large hover:scale-110 active:scale-90 transition-transform">
+                ☰
+            </button>
             <div class="text-center">
                 <h1 id="page-title" class="text-xl font-black tracking-tight">訂餐介面</h1>
-                <div id="status-tag" class="mt-1 text-[10px] tracking-widest uppercase px-3 py-1 rounded-full bg-white/20 inline-block text-[8px]">初始化中...</div>
+                <div id="status-tag" class="mt-1 text-[10px] tracking-widest uppercase px-3 py-1 rounded-full bg-white/20 inline-block text-[8px]">連線中...</div>
             </div>
         </div>
 
@@ -53,7 +61,7 @@
                 <div class="flex-1">
                     <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">你的座號</label>
                     <select id="seat-select" onchange="updateBalanceDisplay()" class="w-full bg-transparent text-lg font-bold outline-none cursor-pointer text-gray-700">
-                        <option value="">讀取座號中...</option>
+                        <option value="">讀取中...</option>
                     </select>
                 </div>
                 <div class="text-right border-l border-gray-200 pl-5">
@@ -85,7 +93,7 @@
         </div>
 
         <div id="page-stats" class="hidden p-6 space-y-4 flex-1">
-            <h2 class="font-black text-gray-800 px-1 flex items-center gap-2">📊 今日統計</h2>
+            <h2 class="font-black text-gray-800 px-1 flex items-center gap-2 font-lg">📊 今日統計</h2>
             <div class="bg-white border border-gray-100 rounded-3xl overflow-hidden shadow-sm">
                 <table class="w-full text-left">
                     <thead class="bg-gray-50 text-[10px] font-bold text-gray-400 uppercase">
@@ -98,7 +106,7 @@
                     <tbody id="stats-table-body" class="text-sm divide-y divide-gray-50"></tbody>
                     <tfoot class="bg-blue-50 font-black text-blue-700">
                         <tr id="stats-total-row">
-                            <td class="p-4 text-xs">今日總結 (Total)</td>
+                            <td class="p-4 text-[11px]">總結（不含飲料）</td>
                             <td id="total-qty" class="p-4 text-center">0</td>
                             <td id="total-sum" class="p-4 text-right">$ 0</td>
                         </tr>
@@ -109,7 +117,9 @@
     </div>
 
     <script>
+        // --- 請在此處替換您的 API 網址 ---
         const API_URL = "https://script.google.com/macros/s/AKfycbzbQYBYyKi_sDdd-LKv5fasV0PUXXNAN7a9RTsnS9Dq_SBgUmO0vpb7a0dx2B8DFVt2oA/exec";
+        
         let globalData = { balances: {}, menu: [], stats: [] };
         let selectedItems = [];
 
@@ -170,7 +180,7 @@
                 tag.innerText = globalData.lastUpdated === today ? "今日菜單已更新" : "菜單尚未更新";
                 tag.style.backgroundColor = globalData.lastUpdated === today ? "#22c55e" : "#f97316";
 
-            } catch (e) { alert("連線失敗，請檢查 API 網址。"); }
+            } catch (e) { alert("讀取失敗，請確認網路連線。"); }
         }
 
         function toggleItem(item, div) {
@@ -197,12 +207,12 @@
             const seat = document.getElementById('seat-select').value;
             const total = selectedItems.reduce((s, i) => s + Number(i.price), 0);
             if(!seat) return alert("請先選取您的座號！");
-            if(selectedItems.length === 0) return alert("請至少選擇一項餐點！");
+            if(selectedItems.length === 0) return alert("請先點選餐點！");
             
             const curBal = Number(document.getElementById('balance-val').innerText.replace("$ ", ""));
-            if(total > curBal) return alert(`餘額不足！無法完成訂購。`);
+            if(total > curBal) return alert(`餘額不足！無法訂購。`);
 
-            if(!confirm(`確認訂購？總金額 $${total}`)) return;
+            if(!confirm(`確認訂購總計 $${total}？`)) return;
             
             document.getElementById('loading-screen').classList.remove('hidden');
 
@@ -214,19 +224,18 @@
                 alert(await res.text());
                 location.reload();
             } catch (e) { 
-                alert("送出失敗"); 
+                alert("傳送失敗"); 
                 document.getElementById('loading-screen').classList.add('hidden');
             }
         }
 
         async function cancelAllOrders() {
             const seat = document.getElementById('seat-select').value;
-            // 關鍵修改：必須先選座號才能取消
-            if(!seat) return alert("請先選取您的座號，系統才能找到您的訂單！");
+            if(!seat) return alert("請先選取您的座號以搜尋訂單！");
 
-            if (new Date().getHours() >= 12) return alert("12:00 後系統已關閉取消功能。");
+            if (new Date().getHours() >= 12) return alert("12:00 後不可取消。");
             
-            if(!confirm(`確定要取消 ${seat} 號今日的所有訂單嗎？`)) return;
+            if(!confirm(`確定要取消 ${seat} 號今日的所有訂單？`)) return;
 
             document.getElementById('loading-screen').classList.remove('hidden');
             try {
@@ -234,7 +243,7 @@
                 alert(await res.text());
                 location.reload();
             } catch (e) { 
-                alert("取消操作失敗"); 
+                alert("取消失敗"); 
                 document.getElementById('loading-screen').classList.add('hidden'); 
             }
         }
