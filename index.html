@@ -73,7 +73,7 @@
             </div>
             <div class="space-y-3">
                 <button id="order-submit-btn" onclick="sendOrder()" class="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-lg active:scale-95 transition-all text-lg">確認送出訂單</button>
-                <button id="cancel-orders-btn" onclick="cancelAllOrders()" class="w-full text-gray-400 font-bold py-2 text-xs hover:text-red-500 transition-colors">取消我今日所有訂單 (限 12:00 前)</button>
+                <button id="cancel-orders-btn" onclick="cancelAllOrders()" class="w-full text-gray-400 font-bold py-2 text-xs hover:text-red-500">取消我今日所有訂單 (限 12:00 前)</button>
             </div>
         </div>
 
@@ -102,8 +102,8 @@
             <div id="admin-content" class="hidden space-y-6">
                 <div class="bg-white p-5 rounded-3xl shadow-sm space-y-4 border-2 border-orange-100">
                     <h3 class="font-black text-orange-700 border-b pb-2">⚠️ 訂餐限制解鎖</h3>
-                    <p class="text-[10px] text-orange-400">解除今日 12:00 鎖定或「菜單未更新」之限制。解鎖後前端取消規則將變更為「限 12:00 後」。</p>
-                    <button onclick="triggerEmergencyUnlock()" class="w-full bg-orange-500 text-white py-3 rounded-xl font-bold active:scale-95 transition-all">解除今日訂餐限制</button>
+                    <p class="text-[10px] text-orange-400">解除今日 12:00 鎖定或「菜單未更新」之限制。解鎖後可繼續訂餐。</p>
+                    <button onclick="triggerEmergencyUnlock()" class="w-full bg-orange-500 text-white py-3 rounded-xl font-bold active:scale-95 transition-all">管理員暫時解鎖訂餐</button>
                 </div>
 
                 <div class="bg-white p-5 rounded-3xl shadow-sm space-y-4">
@@ -126,7 +126,7 @@
                 <div class="bg-white p-5 rounded-3xl shadow-sm space-y-4">
                     <h3 class="font-black text-gray-700 border-b pb-2">🔑 修改密鑰</h3>
                     <input type="text" id="new-key-input" class="w-full p-3 rounded-xl border border-gray-200" placeholder="新密鑰">
-                    <button onclick="updateKey()" class="w-full bg-800 text-white py-3 rounded-xl font-bold">儲存密鑰</button>
+                    <button onclick="updateKey()" class="w-full bg-gray-800 text-white py-3 rounded-xl font-bold">儲存密鑰</button>
                 </div>
             </div>
         </div>
@@ -178,31 +178,34 @@
             document.getElementById('total-qty').innerText = globalData.stats[16]?.qty || 0;
             document.getElementById('total-sum').innerText = `$ ${globalData.stats[16]?.total || 0}`;
 
-            const today = new Date().toLocaleDateString('en-CA');
+            // 時間與狀態邏輯
+            const now = new Date();
+            const hour = now.getHours();
+            const today = now.toLocaleDateString('en-CA');
             const tag = document.getElementById('status-tag');
-            isMenuUpdated = (globalData.lastUpdated === today);
-            
-            tag.innerText = isMenuUpdated ? "今日菜單已更新" : "菜單尚未更新";
-            tag.style.backgroundColor = isMenuUpdated ? "#22c55e" : "#f97316";
-
-            // 處理訂餐按鈕鎖定邏輯
             const orderBtn = document.getElementById('order-submit-btn');
-            // 如果管理員已解鎖 (globalData.isUnlocked)，則無視日期限制
-            if (!isMenuUpdated && !globalData.isUnlocked) {
-                orderBtn.classList.add('disabled-btn');
-                orderBtn.innerText = "菜單未更新，暫不開放訂餐";
-            } else if (globalData.isUnlocked) {
-                tag.innerText = "管理員已強制解鎖訂餐";
-                tag.style.backgroundColor = "#8b5cf6"; // 紫色表示解鎖
-            }
-
-            // 處理取消按鈕文字邏輯 (根據 isUnlocked)
             const cancelBtn = document.getElementById('cancel-orders-btn');
-            if (globalData.isUnlocked) {
+
+            isMenuUpdated = (globalData.lastUpdated === today);
+            const isUnlocked = globalData.unlockedToday === true; // 需配合後端回傳此欄位
+
+            tag.innerText = isMenuUpdated ? "今日菜單已更新" : (isUnlocked ? "已解鎖時限" : "菜單尚未更新");
+            tag.style.backgroundColor = isMenuUpdated ? "#22c55e" : (isUnlocked ? "#3b82f6" : "#f97316");
+
+            // 處理取消按鈕文字
+            if (hour >= 12 && isUnlocked) {
                 cancelBtn.innerText = "取消我今日所有訂單 (限今日 12:00 以後)";
-                cancelBtn.classList.replace('text-gray-400', 'text-orange-500');
             } else {
                 cancelBtn.innerText = "取消我今日所有訂單 (限 12:00 前)";
+            }
+
+            // 處理訂餐按鈕禁用邏輯
+            if (!isMenuUpdated && !isUnlocked) {
+                orderBtn.classList.add('disabled-btn');
+                orderBtn.innerText = "菜單未更新，暫不開放訂餐";
+            } else {
+                orderBtn.classList.remove('disabled-btn');
+                orderBtn.innerText = "確認送出訂單";
             }
 
             const adminMenu = document.getElementById('admin-menu-edit');
@@ -233,8 +236,12 @@
         }
 
         async function sendOrder() {
-            // 如果沒更新且沒解鎖，攔截
-            if (!isMenuUpdated && !globalData.isUnlocked) {
+            const now = new Date();
+            const hour = now.getHours();
+            const today = now.toLocaleDateString('en-CA');
+            const isUnlocked = globalData.unlockedToday === true;
+
+            if (!isUnlocked && globalData.lastUpdated !== today) {
                 alert("今日菜單尚未更新，目前鎖定訂餐！");
                 return;
             }
@@ -248,13 +255,7 @@
 
         async function cancelAllOrders() {
             const seat = document.getElementById('seat-select').value;
-            if(!seat) return alert("請先選擇座號");
-            
-            const promptMsg = globalData.isUnlocked 
-                ? `確定取消 ${seat} 號「12:00 以後」的所有新訂單？`
-                : `確定取消 ${seat} 號今日所有訂單？ (限 12:00 前)`;
-
-            if(!confirm(promptMsg)) return;
+            if(!seat || !confirm(`確定取消 ${seat} 號今日相關訂單？`)) return;
             callAPI({ action: 'cancel', seat: seat });
         }
 
@@ -268,7 +269,7 @@
         }
 
         async function triggerEmergencyUnlock() {
-            if(!confirm("確定強制解鎖嗎？這將允許超時訂餐，且「取消訂單」功能將僅限於取消超時後的新訂單。")) return;
+            if(!confirm("確定執行暫時解鎖嗎？這將允許超時訂餐或跳過更新檢查。")) return;
             callAPI({ action: 'triggerUnlock', key: adminKey });
         }
 
@@ -308,8 +309,7 @@
             document.getElementById('loading-screen').classList.remove('hidden');
             try {
                 const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
-                const resultText = await res.text();
-                alert(resultText);
+                alert(await res.text());
                 location.reload();
             } catch (e) { alert("連線異常"); document.getElementById('loading-screen').classList.add('hidden'); }
         }
