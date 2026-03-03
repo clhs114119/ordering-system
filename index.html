@@ -94,7 +94,7 @@
                 <div class="bg-white p-5 rounded-3xl shadow-sm space-y-4">
                     <h3 class="font-black text-gray-700 border-b pb-2">🍱 修改價格</h3>
                     <div id="admin-menu-edit" class="space-y-2 max-h-40 overflow-y-auto custom-scrollbar"></div>
-                    <button onclick="updateMenu()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold">更新菜單 (日期同步今日)</button>
+                    <button onclick="updateMenu()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold">更新菜單</button>
                 </div>
                 <div class="bg-white p-5 rounded-3xl shadow-sm space-y-4 border-2 border-green-100">
                     <h3 class="font-black text-green-700 border-b pb-2">💰 用戶加值</h3>
@@ -102,7 +102,7 @@
                     <input type="number" id="recharge-amount" oninput="calcRecharge()" class="w-full p-3 rounded-xl border border-gray-200" placeholder="加值金額 (必須大於0)">
                     <div class="grid grid-cols-2 gap-2 bg-gray-50 p-3 rounded-xl text-center text-xs">
                         <div><p class="text-gray-400">目前餘額</p><p id="preview-current" class="font-black text-gray-600">$ --</p></div>
-                        <div class="border-l border-gray-200"><p class="text-gray-400">加值後預計</p><p id="preview-after" class="font-black text-green-600">--</p></div>
+                        <div class="border-l border-gray-200"><p class="text-gray-400">加值後金額</p><p id="preview-after" class="font-black text-green-600">--</p></div>
                     </div>
                     <button id="recharge-btn" onclick="rechargeUser()" disabled class="w-full bg-gray-300 text-white py-3 rounded-xl font-bold">確認加值</button>
                 </div>
