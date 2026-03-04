@@ -25,41 +25,78 @@
             border-radius: 10px; 
         }
         
-        /* --- 漢堡選單修復：解決點擊偏移與熱區問題 --- */
+        /* --- 漢堡選單：終極熱區與位置校正 --- */
         .menu-btn-large { 
-            position: relative; 
-            z-index: 999;       /* 提升至最高層級，避免被玻璃層阻擋 */
-            width: 64px;        /* 稍微加大容器 */
-            height: 64px;       
-            padding: 0;         
+            position: relative; /* 改為相對定位以承載絕對感應區 */
+            z-index: 9999 !important; /* 絕對最高權限 */
+            width: 60px;        
+            height: 60px;       
             margin: 0;
-            font-size: 2.5rem !important; 
+            padding: 0;
+            font-size: 2.8rem !important; /* 稍微再加大視覺 */
             line-height: 1;     
-            display: inline-flex; /* 改為 inline-flex 確保父層容器不壓縮 */
+            display: flex;
             align-items: center;    
             justify-content: center; 
             cursor: pointer;
             background: transparent;
             border: none;
             outline: none;
-            pointer-events: auto !important; 
-            /* 視覺修正：確保圖示在物理中心 */
-            transform: translateY(-2px); 
+            /* 視覺微調：如果符號看起來偏低，這裡向上拉 */
+            transform: translateY(-4px); 
+            pointer-events: auto !important;
         }
 
-        /* 核心修復：使用偽元素擴大點擊感應區，解決「只能點下方」的問題 */
-        .menu-btn-large::after {
+        /* 核心修復：強制創造一個 100x100 的隱形點擊方塊，並強行置中 */
+        .menu-btn-large::before {
             content: "";
             position: absolute;
             top: 50%;
             left: 50%;
-            width: 80px;  /* 感應區比視覺大，增加容錯率 */
-            height: 80px;
+            width: 100px; /* 寬大的感應區 */
+            height: 100px; /* 高大的感應區 */
+            background: rgba(255, 0, 0, 0); /* 測試時可改為 0.2 觀察紅框位置 */
             transform: translate(-50%, -50%);
-            background: transparent;
-            z-index: 1000;
+            z-index: 10000;
+            pointer-events: auto !important;
         }
 
+        /* 修正玻璃邊緣偽元素，避免它變成「擋箭牌」 */
+        .glass-container::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            padding: 2.5px;
+            background: linear-gradient(
+                95deg, 
+                rgba(255, 255, 255, 0.95) 0%, 
+                rgba(255, 255, 255, 0.4) 15%, 
+                rgba(255, 255, 255, 0) 45%, 
+                rgba(0, 0, 0, 0) 80%,
+                rgba(0, 0, 0, 0.15) 92%,
+                rgba(255, 255, 255, 0.3) 100%
+            );
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            /* 必須確保這層不會攔截任何點擊 */
+            pointer-events: none !important; 
+            z-index: 5; /* 降低層級，不與按鈕競爭 */
+        }
+
+        /* 內容層級全面避讓 */
+        .glass-container > * {
+            position: relative;
+            z-index: 10;
+        }
+
+        /* 漢堡選單活動狀態反饋 */
+        .menu-btn-large:active {
+            transform: translateY(-4px) scale(0.9);
+            opacity: 0.7;
+        }
+        
         .menu-btn-large:active { transform: translateY(-2px) scale(0.9); }
         
         /* --- 側邊選單 --- */
