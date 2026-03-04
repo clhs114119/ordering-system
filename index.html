@@ -316,35 +316,61 @@
             const idx = selectedItems.findIndex(i => i.id === item.id);
             if(idx > -1) {
                 selectedItems.splice(idx, 1);
-                // 回復為原本的樣式 (border-white/20 + card-bg)
                 div.className = "card-bg flex justify-between items-center p-4 border border-white/20 rounded-2xl cursor-pointer hover:bg-white/40 transition-all";
             } else {
                 selectedItems.push(item);
-                // 修改處：保持透明度與模糊，僅更換底色為半透明藍 (bg-blue-500/50) 與藍色邊框
-                // 這裡不使用 text-white，以維持原本的文字清晰度
                 div.className = "flex justify-between items-center p-4 border border-blue-400 bg-blue-500/40 rounded-2xl cursor-pointer shadow-inner transition-all";
             }
-            document.getElementById('total-amount').innerText = `$ ${selectedItems.reduce((s,i)=>s+Number(i.price), 0)}`;
+            // 更新總金額顯示
+            const total = selectedItems.reduce((s,i) => s + Number(i.price), 0);
+            document.getElementById('total-amount').innerText = `$ ${total}`;
+            // 額外加強：即時檢查餘額並改變送出按鈕狀態
+            checkBalanceStatus(total);
         }
-        
+
         function updateBalanceDisplay() {
             const s = document.getElementById('seat-select').value;
             const balance = globalData.balances[s] || 0;
             const displayElement = document.getElementById('balance-val');
-    
+        
             // 更新數值文字
             displayElement.innerText = `$ ${balance}`;
-    
+        
             // 移除舊的顏色類別，確保重新計算
-            displayElement.classList.remove('text-blue-700', 'text-red-500', 'text-yellow-500');
-
-            // 根據餘額判斷顏色邏輯
+            displayElement.classList.remove('text-blue-700', 'text-red-500', 'text-yellow-500', 'text-amber-600');
+        
+            // 根據餘額判斷顏色邏輯 (已套用您的最新門檻)
             if (balance < 75) {
                 displayElement.classList.add('text-red-500'); // 少於 75 元：紅色
             } else if (balance < 150) {
-                displayElement.classList.add('text-amber-600'); // 少於 150 元：琥珀色
+                displayElement.classList.add('text-amber-600'); // 少於 150 元：琥珀色 (加深黃)
             } else {
-                displayElement.classList.add('text-blue-700'); // 大於等於 150 元：原本的藍色
+                displayElement.classList.add('text-blue-700'); // 大於等於 150 元：藍色
+            }
+        
+            // 重點：切換座號時，立即檢查目前的選餐總額是否超過新座號的餘額
+            const total = selectedItems.reduce((sum, i) => sum + Number(i.price), 0);
+            checkBalanceStatus(total); 
+        }
+        
+        // 輔助函數：統一控制送出按鈕的狀態
+        function checkBalanceStatus(total) {
+            const submitBtn = document.querySelector('button[onclick="sendOrder()"]');
+            if (!submitBtn) return;
+        
+            const s = document.getElementById('seat-select').value;
+            const balance = globalData.balances[s] || 0;
+        
+            if (total > balance) {
+                // 餘額不足：按鈕變灰、禁用、顯示差額
+                submitBtn.classList.add('opacity-50', 'cursor-not-allowed', 'grayscale');
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = `<span>餘額不足 (還差 $${total - balance})</span>`;
+            } else {
+                // 餘額充足：恢復正常
+                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'grayscale');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = `<span>確認送出訂單</span>`;
             }
         }
 
@@ -368,10 +394,17 @@
             if (!isMenuUpdated && !globalData.emergencyUnlocked) return alert("目前鎖定訂餐！");
             const seat = document.getElementById('seat-select').value;
             if(!seat || selectedItems.length === 0) return alert("請選擇座號與餐點");
+            // --- 新增：餘額檢查邏輯 ---
+            const totalCost = selectedItems.reduce((sum, item) => sum + Number(item.price), 0);
+            const currentBalance = globalData.balances[seat] || 0;
+            if (currentBalance < totalCost) {
+                alert(`❌ 餘額不足，無法訂餐！\n----------------\n座號：${seat} 號\n目前餘額：$ ${currentBalance}\n訂單總額：$ ${totalCost}\n----------------\n請找管理員加值。`);
+                return; 
+            }
             // 1. 整理餐點名稱清單
             const itemNames = selectedItems.map(i => i.name).join('、');
-            // 2. 組成確認文字
-            const confirmMsg = `核對訂購資訊：\n----------------\n座號：${seat} 號\n餐點：${itemNames}\n----------------\n確認送出訂單嗎？`;
+            // 2. 組成確認文字 (加入總金額顯示更貼心)
+            const confirmMsg = `核對訂購資訊：\n----------------\n座號：${seat} 號\n餐點：${itemNames}\n總計：$ ${totalCost}\n----------------\n確認送出訂單嗎？`;
             if(!confirm(confirmMsg)) return;     
             callAPI({ action: 'order', seat: seat, items: selectedItems });
         }
