@@ -250,11 +250,16 @@
         let isMenuUpdated = false;
 
         async function init() {
+            document.getElementById('loading-screen').classList.remove('hidden'); // 加入這行
             try {
                 const res = await fetch(API_URL);
                 globalData = await res.json();
                 renderBaseUI();
-            } catch (e) { alert("連線失敗"); }
+            } catch (e) { 
+                alert("連線失敗"); 
+            } finally {
+                document.getElementById('loading-screen').classList.add('hidden'); // 確保關閉
+            }
         }
 
         function renderBaseUI() {
