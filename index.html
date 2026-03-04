@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>119定餐系統 V3.4.4</title>
+    <title>119定餐系統 V3.4.5</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* --- 基礎環境設定 --- */
+        /* --- 基礎環境與背景 --- */
         body {
             background-image: url('https://raw.githubusercontent.com/clhs114119/ordering-system/refs/heads/main/background%20image/d7280e77f44318b33151336fd901a472.jpeg'); 
             background-size: cover;
@@ -19,120 +19,116 @@
             min-height: 100vh;
         }
         
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { 
-            background: rgba(255, 255, 255, 0.2); 
-            border-radius: 10px; 
+        /* --- 漢堡選單圖示加大 --- */
+        #menu-toggle, .menu-icon {
+            font-size: 2.5rem !important; /* 顯著加大 */
+            cursor: pointer;
+            transition: transform 0.2s ease;
         }
+        #menu-toggle:active { transform: scale(0.9); }
         
-        /* --- 側邊選單 --- */
-        #side-menu { 
-            transition: transform 0.3s ease-in-out; 
-            display: flex; 
-            flex-direction: column;
-            backdrop-filter: blur(15px);
-            background-color: rgba(255, 255, 255, 0.5);
-            z-index: 50;
-        }
-        
-        /* --- 主容器：強化邊緣折射、中心極致透明 --- */
-        .glass-container {
+        /* --- 核心：水晶玻璃通用樣式 (Mixin 邏輯) --- */
+        .crystal-glass {
             position: relative;
-            /* 核心修正：將透明區推至 85%，確保中心完全不霧，只有最邊緣有 15% 的凝聚色 */
+            border: none !important;
+            backdrop-filter: blur(0.5px) saturate(115%);
+            -webkit-backdrop-filter: blur(0.5px) saturate(115%);
+            /* 核心漸層：邊緣聚光，中央 85% 掏空 */
             background: radial-gradient(
                 circle at 25% 45%, 
                 rgba(255, 255, 255, 0) 85%, 
-                rgba(255, 255, 255, 0.05) 100%
+                rgba(255, 255, 255, 0.08) 100%
             ) !important;
-            
-            /* 降低模糊度至 0.5px，消除「霧面感」，僅保留玻璃的折射質感 */
-            backdrop-filter: blur(0.5px) saturate(110%);
-            -webkit-backdrop-filter: blur(0.5px) saturate(110%);
-            
-            border-radius: 2.5rem;
-            border: none !important; 
-            
-            /* 強化陰影對比度，定義厚度感 */
+            /* 物理深度陰影 */
             box-shadow: 
-                30px 10px 60px -20px rgba(0, 0, 0, 0.4), 
-                /* 左側受光面：縮小模糊半徑並增加不透明度，讓厚度邊界變明顯 */
-                inset 12px 2px 15px -2px rgba(255, 255, 255, 0.45), 
-                /* 右側暗面：強化深色折射的邊界 */
-                inset -15px -3px 20px -5px rgba(0, 0, 0, 0.25),
-                /* 最外層定義物理厚度的細微白邊 */
-                inset 1px 1px 1px rgba(255, 255, 255, 0.3);
+                15px 10px 30px -15px rgba(0, 0, 0, 0.3),
+                inset 8px 2px 12px -2px rgba(255, 255, 255, 0.4),
+                inset -10px -3px 15px -5px rgba(0, 0, 0, 0.2),
+                inset 0 0 1px rgba(255, 255, 255, 0.3);
         }
         
-        /* --- 邊緣折射層：加強高光顯眼度 --- */
-        .glass-container::before {
+        /* 水晶玻璃的厚度折射層 (::before) */
+        .crystal-glass::before {
             content: "";
             position: absolute;
-            inset: 0; 
-            border-radius: 2.5rem;
-            
-            /* 核心修正：增加 padding 寬度到 2.5px 並拉長漸層區間，讓邊框「現形」 */
-            padding: 2.5px; 
-            
+            inset: 0;
+            border-radius: inherit; /* 自動跟隨父層圓角 */
+            padding: 2.2px; /* 物理倒角厚度 */
             background: linear-gradient(
                 95deg, 
-                rgba(255, 255, 255, 0.9) 0%,    /* 極強的左側迎光 */
-                rgba(255, 255, 255, 0.4) 12%,   /* 讓高光維持更長的距離 (12%) */
-                rgba(255, 255, 255, 0) 40%,     /* 之後再轉透明 */
-                rgba(0, 0, 0, 0) 80%, 
-                rgba(0, 0, 0, 0.2) 90%,         /* 右側暗部折射 */
-                rgba(255, 255, 255, 0.3) 100%   /* 底部反射 */
+                rgba(255, 255, 255, 0.9) 0%,    
+                rgba(255, 255, 255, 0.4) 15%,   
+                rgba(255, 255, 255, 0) 45%,     
+                rgba(0, 0, 0, 0.1) 85%,         
+                rgba(255, 255, 255, 0.3) 100%   
             );
-            
-            /* 遮罩技術：確保高光只呈現在 padding 區域 */
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor;
             mask-composite: exclude;
-            
             pointer-events: none;
-            z-index: 0;
         }
         
-        /* 確保內部元件在最上層 */
-        .glass-container > * {
+        /* --- 應用到具體元件：維持顏色並加入水晶質感 --- */
+        
+        /* 1. 主容器 */
+        .glass-container {
+            @extend .crystal-glass; /* 邏輯複用 */
+            border-radius: 2.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        /* 2. Header：維持藍色基調 + 水晶折射 */
+        .header-glass {
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.7), rgba(29, 78, 216, 0.5)) !important;
             position: relative;
-            z-index: 1;
+            border: none !important;
+            box-shadow: inset 5px 1px 10px rgba(255,255,255,0.3);
         }
         
-        /* --- 其他元件樣式 --- */
-        .header-glass { 
-            background-color: rgba(37, 99, 235, 0.6) !important; 
-            backdrop-filter: blur(5px);
+        /* 3. 卡片元件：維持白底 + 水晶折射 */
+        .card-bg {
+            background: rgba(255, 255, 255, 0.35) !important;
+            border-radius: 1.5rem;
+            position: relative;
+            transition: transform 0.2s ease;
+        }
+        .card-bg:hover { transform: translateY(-3px); }
+        
+        /* 4. 輸入框與選擇框：水晶質感化 */
+        input, select {
+            background: rgba(255, 255, 255, 0.25) !important;
+            border-radius: 0.75rem !important;
+            padding: 10px 15px !important;
+            color: #1e293b;
+            box-shadow: inset 2px 2px 5px rgba(255,255,255,0.2);
         }
         
-        .card-bg { 
-            background-color: rgba(255, 255, 255, 0.45) !important; 
-            border: 1px solid rgba(255, 255, 255, 0.2); 
+        /* 5. 側邊選單：維持原色模糊但加入邊緣折射 */
+        #side-menu {
+            transition: transform 0.3s ease-in-out;
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(20px);
+            z-index: 50;
+            box-shadow: -5px 0 30px rgba(0,0,0,0.1);
         }
         
-        input, select { 
-            background-color: rgba(255, 255, 255, 0.4) !important; 
-            border: 1px solid rgba(255, 255, 255, 0.2); 
-        }
-        
-        /* --- 整合後的行動端優化 --- */
+        /* --- 行動端優化 --- */
         @media (max-width: 640px) {
             .glass-container {
-                margin-left: 10px !important;
-                margin-right: 10px !important;
+                margin: 0 10px 1.5rem 10px !important;
                 width: calc(100% - 20px) !important;
-                
-                box-shadow: 
-                    20px 5px 40px -15px rgba(0, 0, 0, 0.35),
-                    inset 10px 2px 12px -2px rgba(255, 255, 255, 0.5), 
-                    inset -10px -2px 15px -3px rgba(0, 0, 0, 0.3);
-                    
-                border-radius: 2rem !important;
+                border-radius: 2rem;
             }
+            
+            #menu-toggle, .menu-icon {
+                font-size: 2.2rem !important;
+            }
+        }
         
-            .glass-container::before {
-                border-radius: 2rem !important;
-                padding: 3px; /* 手機端邊框更明顯一點 */
-            }
+        /* 確保所有水晶元件內容可點擊 */
+        .crystal-glass > *, .glass-container > *, .card-bg > * {
+            position: relative;
+            z-index: 1;
         }
     </style>
 </head>
@@ -149,7 +145,7 @@
     <div id="side-menu" class="fixed top-0 left-0 h-full w-64 z-50 shadow-2xl transform -translate-x-full">
         <div class="p-8 header-glass text-white shrink-0">
             <h2 class="text-xl font-black italic">119 訂餐系統</h2>
-            <p class="text-[10px] opacity-80 tracking-widest">V3.4.4 正式版</p>
+            <p class="text-[10px] opacity-80 tracking-widest">V3.4.5 正式版</p>
         </div>
         
         <nav class="p-4 space-y-2 flex-grow">
@@ -163,7 +159,10 @@
             <h3 class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3">更新日誌</h3>
             <div class="space-y-4 max-h-52 overflow-y-auto custom-scrollbar pr-2 text-[11px] text-gray-600">
                 <div>
-                    <p class="font-bold text-blue-700">V3.4.4 (Current)</p>
+                    <p class="font-bold text-blue-700">V3.4.5 (Current)</p>
+                </div>
+                <div>
+                    <p class="font-bold text-gray-700">V3.4.4</p>
                     <p>• 加入餘額檢查功能</p>
                     <p>• 細部功能優化</p>
                     <p>• 修復錯誤並提升穩定性</p>
