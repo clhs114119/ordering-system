@@ -367,8 +367,12 @@
         async function sendOrder() {
             if (!isMenuUpdated && !globalData.emergencyUnlocked) return alert("目前鎖定訂餐！");
             const seat = document.getElementById('seat-select').value;
-            if(!seat || selectedItems.length === 0) return alert("資訊不完整");
-            if(!confirm(`確認訂購？`)) return;
+            if(!seat || selectedItems.length === 0) return alert("請選擇座號與餐點");
+            // 1. 整理餐點名稱清單
+            const itemNames = selectedItems.map(i => i.name).join('、');
+            // 2. 組成確認文字
+            const confirmMsg = `核對訂購資訊：\n----------------\n座號：${seat} 號\n餐點：${itemNames}\n----------------\n確認送出訂單嗎？`;
+            if(!confirm(confirmMsg)) return;     
             callAPI({ action: 'order', seat: seat, items: selectedItems });
         }
 
@@ -426,9 +430,20 @@
             document.getElementById('loading-screen').classList.remove('hidden');
             try {
                 const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
-                alert(await res.text());
+                const resultText = await res.text();
+                // 如果是訂餐動作且成功，彈出更詳細的完成視窗
+                if (payload.action === 'order' && resultText.includes("成功")) {
+                    const seat = payload.seat;
+                    const itemNames = payload.items.map(i => i.name).join('、');
+                    alert(`✅ 訂餐成功！\n座號：${seat} 號\n已記錄餐點：${itemNames}`);
+                } else {
+                    alert(resultText);
+                }
                 location.reload();
-            } catch (e) { alert("連線異常"); document.getElementById('loading-screen').classList.add('hidden'); }
+            } catch (e) { 
+                alert("連線異常，請檢查網路"); 
+                document.getElementById('loading-screen').classList.add('hidden'); 
+            }
         }
 
         function toggleMenu() {
