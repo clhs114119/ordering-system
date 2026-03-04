@@ -25,79 +25,44 @@
             border-radius: 10px; 
         }
         
-        /* --- 漢堡選單：終極熱區與位置校正 --- */
+        /* --- 漢堡選單：熱區歸位與層級絕對化 --- */
         .menu-btn-large { 
-            position: relative; /* 改為相對定位以承載絕對感應區 */
-            z-index: 9999 !important; /* 絕對最高權限 */
+            position: relative; 
+            z-index: 9999 !important; 
             width: 60px;        
             height: 60px;       
             margin: 0;
             padding: 0;
-            font-size: 2.8rem !important; /* 稍微再加大視覺 */
+            font-size: 2.8rem !important; 
             line-height: 1;     
-            display: flex;
+            display: inline-flex; /* 確保不被父容器壓縮 */
             align-items: center;    
             justify-content: center; 
             cursor: pointer;
             background: transparent;
             border: none;
             outline: none;
-            /* 視覺微調：如果符號看起來偏低，這裡向上拉 */
-            transform: translateY(-4px); 
             pointer-events: auto !important;
+            vertical-align: middle;
         }
-
-        /* 核心修復：強制創造一個 100x100 的隱形點擊方塊，並強行置中 */
+        
+        /* 終極熱區：確保點擊感應區是一個完美的正方形並覆蓋圖示 */
         .menu-btn-large::before {
             content: "";
             position: absolute;
             top: 50%;
             left: 50%;
-            width: 100px; /* 寬大的感應區 */
-            height: 100px; /* 高大的感應區 */
-            background: rgba(255, 0, 0, 0); /* 測試時可改為 0.2 觀察紅框位置 */
+            width: 70px; 
+            height: 70px;
+            background: transparent;
             transform: translate(-50%, -50%);
             z-index: 10000;
-            pointer-events: auto !important;
-        }
-
-        /* 修正玻璃邊緣偽元素，避免它變成「擋箭牌」 */
-        .glass-container::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            border-radius: inherit;
-            padding: 2.5px;
-            background: linear-gradient(
-                95deg, 
-                rgba(255, 255, 255, 0.95) 0%, 
-                rgba(255, 255, 255, 0.4) 15%, 
-                rgba(255, 255, 255, 0) 45%, 
-                rgba(0, 0, 0, 0) 80%,
-                rgba(0, 0, 0, 0.15) 92%,
-                rgba(255, 255, 255, 0.3) 100%
-            );
-            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            -webkit-mask-composite: xor;
-            mask-composite: exclude;
-            /* 必須確保這層不會攔截任何點擊 */
-            pointer-events: none !important; 
-            z-index: 5; /* 降低層級，不與按鈕競爭 */
-        }
-
-        /* 內容層級全面避讓 */
-        .glass-container > * {
-            position: relative;
-            z-index: 10;
-        }
-
-        /* 漢堡選單活動狀態反饋 */
-        .menu-btn-large:active {
-            transform: translateY(-4px) scale(0.9);
-            opacity: 0.7;
         }
         
-        .menu-btn-large:active { transform: translateY(-2px) scale(0.9); }
+        .menu-btn-large:active {
+            transform: scale(0.9);
+            opacity: 0.7;
+        }
         
         /* --- 側邊選單 --- */
         #side-menu { 
@@ -106,7 +71,7 @@
             flex-direction: column;
             backdrop-filter: blur(15px);
             background-color: rgba(255, 255, 255, 0.5);
-            z-index: 500; /* 高於內容但低於按鈕 */
+            z-index: 1500; 
         }
         
         /* --- 水晶玻璃核心效果 --- */
@@ -126,11 +91,10 @@
                 inset 12px 2px 15px -2px rgba(255, 255, 255, 0.45), 
                 inset -15px -3px 20px -5px rgba(0, 0, 0, 0.25),
                 inset 1px 1px 1px rgba(255, 255, 255, 0.3);
-            /* 防止容器溢出擋住選單點擊 */
             z-index: 10;
         }
         
-        /* 邊緣折射層：確保不攔截滑鼠事件 */
+        /* 統一修復後的邊緣折射層 (解決重複定義問題) */
         .glass-container::before {
             content: "";
             position: absolute;
@@ -149,31 +113,32 @@
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor;
             mask-composite: exclude;
-            pointer-events: none !important; /* 絕對不能攔截點擊 */
+            pointer-events: none !important; 
             z-index: 20; 
         }
         
-        /* --- 小型元件的水晶效果 --- */
-        .card-bg, input, select, .header-glass {
+        /* --- 小型元件與 Header --- */
+        .header-glass { 
+            position: relative;
+            background-color: rgba(37, 99, 235, 0.6) !important; 
+            backdrop-filter: blur(5px);
+            z-index: 100; /* 確保 header 不會蓋過按鈕 */
+        }
+        
+        .card-bg, input, select {
             position: relative;
             border: none !important;
             backdrop-filter: blur(8px) saturate(120%);
             -webkit-backdrop-filter: blur(8px) saturate(120%);
-            background-clip: padding-box;
             z-index: 1;
         }
-        
-        .header-glass { background-color: rgba(37, 99, 235, 0.6) !important; border-radius: 1rem; }
         
         .card-bg { 
             background-color: rgba(255, 255, 255, 0.45) !important; 
             border-radius: 1.5rem;
-            box-shadow: 
-                0 10px 15px -3px rgba(0, 0, 0, 0.1),
-                inset 4px 1px 6px -1px rgba(255, 255, 255, 0.5);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), inset 4px 1px 6px -1px rgba(255, 255, 255, 0.5);
         }
         
-        /* 小型元件的高亮偽元素 */
         .card-bg::before, input::before, select::before {
             content: "";
             position: absolute;
@@ -188,7 +153,7 @@
             z-index: 5;
         }
         
-        /* 內容層級 */
+        /* 確保內部內容在所有背景層之上 */
         .glass-container > *, .card-bg > *, .header-glass > * {
             position: relative;
             z-index: 30;
@@ -201,15 +166,9 @@
                 width: calc(100% - 20px) !important;
                 border-radius: 2rem !important;
             }
-        
             .glass-container::before {
                 padding: 3px; 
-                background: linear-gradient(
-                    95deg, 
-                    rgba(255, 255, 255, 0.9) 0%, 
-                    rgba(255, 255, 255, 0) 30%, 
-                    rgba(255, 255, 255, 0.2) 100%
-                );
+                background: linear-gradient(95deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0) 30%, rgba(255,255,255,0.2) 100%);
             }
         }
     </style>
