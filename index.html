@@ -35,64 +35,64 @@
             z-index: 50;
         }
         
-        /* --- 主容器：無邊框感、高透水晶厚玻璃 --- */
+        /* --- 主容器：強化邊緣折射、中心極致透明 --- */
         .glass-container {
             position: relative;
-            /* 中心完全透視 (60% 處才開始有極微弱底色) */
+            /* 核心修正：將透明區推至 85%，確保中心完全不霧，只有最邊緣有 15% 的凝聚色 */
             background: radial-gradient(
                 circle at 25% 45%, 
-                rgba(255, 255, 255, 0) 60%, 
-                rgba(255, 255, 255, 0.02) 100%
+                rgba(255, 255, 255, 0) 85%, 
+                rgba(255, 255, 255, 0.05) 100%
             ) !important;
             
-            /* 極低模糊以維持櫥窗清晰感 */
-            backdrop-filter: blur(1px) saturate(110%);
-            -webkit-backdrop-filter: blur(1px) saturate(110%);
+            /* 降低模糊度至 0.5px，消除「霧面感」，僅保留玻璃的折射質感 */
+            backdrop-filter: blur(0.5px) saturate(110%);
+            -webkit-backdrop-filter: blur(0.5px) saturate(110%);
             
             border-radius: 2.5rem;
             border: none !important; 
             
-            /* 核心：利用大半徑、負擴張陰影營造「內部容積」 */
+            /* 強化陰影對比度，定義厚度感 */
             box-shadow: 
                 30px 10px 60px -20px rgba(0, 0, 0, 0.4), 
-                /* 左側迎光：50px 大範圍模糊光暈，不產生硬邊 */
-                inset 25px 2px 50px -15px rgba(255, 255, 255, 0.3), 
-                /* 右側背光：深色折射同樣採大面積擴散 */
-                inset -25px -3px 50px -18px rgba(0, 0, 0, 0.2),
-                /* 極微弱的物理邊界定義，透明度降至 0.2 */
-                inset 0.5px 0.5px 0.5px rgba(255, 255, 255, 0.2);
+                /* 左側受光面：縮小模糊半徑並增加不透明度，讓厚度邊界變明顯 */
+                inset 12px 2px 15px -2px rgba(255, 255, 255, 0.45), 
+                /* 右側暗面：強化深色折射的邊界 */
+                inset -15px -3px 20px -5px rgba(0, 0, 0, 0.25),
+                /* 最外層定義物理厚度的細微白邊 */
+                inset 1px 1px 1px rgba(255, 255, 255, 0.3);
         }
         
-        /* --- 邊緣折射層：採羽化消散設計 --- */
+        /* --- 邊緣折射層：加強高光顯眼度 --- */
         .glass-container::before {
             content: "";
             position: absolute;
-            /* 溢出 1px 以修補圓角鋸齒，並改用漸層定義厚度而非 padding */
-            inset: -1px; 
+            inset: 0; 
             border-radius: 2.5rem;
             
-            /* 95deg 光源：高光僅在 0%~2% 處閃爍，6% 後完全透明消失 */
+            /* 核心修正：增加 padding 寬度到 2.5px 並拉長漸層區間，讓邊框「現形」 */
+            padding: 2.5px; 
+            
             background: linear-gradient(
                 95deg, 
-                rgba(255, 255, 255, 0.8) 0%,    
-                rgba(255, 255, 255, 0.3) 2%,    
-                rgba(255, 255, 255, 0) 6%,      
-                rgba(0, 0, 0, 0) 85%, 
-                rgba(0, 0, 0, 0.1) 95%,         
-                rgba(255, 255, 255, 0.1) 100%
+                rgba(255, 255, 255, 0.9) 0%,    /* 極強的左側迎光 */
+                rgba(255, 255, 255, 0.4) 12%,   /* 讓高光維持更長的距離 (12%) */
+                rgba(255, 255, 255, 0) 40%,     /* 之後再轉透明 */
+                rgba(0, 0, 0, 0) 80%, 
+                rgba(0, 0, 0, 0.2) 90%,         /* 右側暗部折射 */
+                rgba(255, 255, 255, 0.3) 100%   /* 底部反射 */
             );
             
-            /* 遮罩技術：僅保留邊緣，padding 設為 1px 保持邊界柔軟度 */
+            /* 遮罩技術：確保高光只呈現在 padding 區域 */
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor;
             mask-composite: exclude;
-            padding: 1px; 
             
             pointer-events: none;
             z-index: 0;
         }
         
-        /* 確保內部元件層級，不被陰影遮擋 */
+        /* 確保內部元件在最上層 */
         .glass-container > * {
             position: relative;
             z-index: 1;
@@ -114,41 +114,24 @@
             border: 1px solid rgba(255, 255, 255, 0.2); 
         }
         
-        .menu-btn-large { padding: 25px; margin: -25px; font-size: 2rem; }
-        
-        .disabled-btn { 
-            background-color: rgba(203, 213, 225, 0.5) !important; 
-            cursor: not-allowed !important; 
-            opacity: 0.7; 
-        }
-        
         /* --- 整合後的行動端優化 --- */
         @media (max-width: 640px) {
             .glass-container {
-                /* 增加內縮空間以展示側光 */
-                margin-left: 14px !important;
-                margin-right: 14px !important;
-                width: calc(100% - 28px) !important;
+                margin-left: 10px !important;
+                margin-right: 10px !important;
+                width: calc(100% - 20px) !important;
                 
-                /* 手機端強化 X 軸偏移，模擬厚度 */
                 box-shadow: 
                     20px 5px 40px -15px rgba(0, 0, 0, 0.35),
-                    inset 15px 2px 35px -12px rgba(255, 255, 255, 0.35), 
-                    inset -15px -2px 35px -15px rgba(0, 0, 0, 0.2);
+                    inset 10px 2px 12px -2px rgba(255, 255, 255, 0.5), 
+                    inset -10px -2px 15px -3px rgba(0, 0, 0, 0.3);
                     
                 border-radius: 2rem !important;
             }
         
             .glass-container::before {
                 border-radius: 2rem !important;
-                /* 手機端高光微調 */
-                background: linear-gradient(
-                    95deg, 
-                    rgba(255, 255, 255, 0.7) 0%,    
-                    rgba(255, 255, 255, 0) 8%,      
-                    rgba(0, 0, 0, 0.1) 92%,         
-                    rgba(255, 255, 255, 0.1) 100%
-                );
+                padding: 3px; /* 手機端邊框更明顯一點 */
             }
         }
     </style>
