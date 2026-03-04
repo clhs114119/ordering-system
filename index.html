@@ -253,16 +253,15 @@
         let isMenuUpdated = false;
 
         async function init() {
-            document.getElementById('loading-screen').classList.remove('hidden'); // 加入這行
+            // 確保這裡「不要」寫開啟 loading 的程式碼
             try {
                 const res = await fetch(API_URL);
                 globalData = await res.json();
                 renderBaseUI();
             } catch (e) { 
-                alert("連線失敗"); 
-            } finally {
-                document.getElementById('loading-screen').classList.add('hidden'); // 確保關閉
+                alert("連線失敗，請檢查網路後重新整理"); 
             }
+            // 這裡也不需要關閉，因為根本沒開啟
         }
 
         function renderBaseUI() {
