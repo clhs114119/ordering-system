@@ -27,10 +27,10 @@
         
         /* --- 漢堡選單修正：確保 100% 精準點擊 --- */
         .menu-btn-large { 
-            position: relative; /* 必須加上，為了 Z-index 有效 */
-            z-index: 200;       /* 確保高於所有玻璃折射層 (原本最高是 100) */
-            padding: 15px;      /* 合理的內距 */
-            margin-left: 0;     /* 移除可能導致偏移的負 margin */
+            position: relative; 
+            z-index: 200;       
+            padding: 15px;      
+            margin-left: 0;     
             font-size: 2.5rem !important; 
             line-height: 1;
             display: flex;
@@ -40,7 +40,6 @@
             background: transparent;
             border: none;
             outline: none;
-            /* 核心修復：防止點擊被偽元素攔截 */
             pointer-events: auto !important; 
         }
         .menu-btn-large:active { transform: scale(0.9); }
@@ -52,11 +51,10 @@
             flex-direction: column;
             backdrop-filter: blur(15px);
             background-color: rgba(255, 255, 255, 0.5);
-            z-index: 150; /* 略低於漢堡按鈕，確保選單開啟時按鈕依然可點擊 */
+            z-index: 150; 
         }
         
-        /* --- 水晶玻璃核心效果 (可複用) --- */
-        /* 主容器：維持極致透明度與重厚邊框 */
+        /* --- 水晶玻璃核心效果 --- */
         .glass-container {
             position: relative;
             background: radial-gradient(
@@ -64,10 +62,12 @@
                 rgba(255, 255, 255, 0) 85%, 
                 rgba(255, 255, 255, 0.05) 100%
             ) !important;
+            /* 調整模糊度以增加清晰感 */
             backdrop-filter: blur(0.5px) saturate(110%);
             -webkit-backdrop-filter: blur(0.5px) saturate(110%);
             border-radius: 2.5rem;
             border: none !important; 
+            /* 強化陰影深度，讓物理體積更明顯 */
             box-shadow: 
                 30px 10px 60px -20px rgba(0, 0, 0, 0.4), 
                 inset 12px 2px 15px -2px rgba(255, 255, 255, 0.45), 
@@ -75,38 +75,38 @@
                 inset 1px 1px 1px rgba(255, 255, 255, 0.3);
         }
         
-        /* 玻璃邊緣折射層 (偽元素) */
-        .glass-container::before, .crystal-component::before, .card-bg::before, input::before, select::before {
+        /* 修復後的邊緣折射層：提升層級並修正語法 */
+        .glass-container::before {
             content: "";
             position: absolute;
             inset: 0;
             border-radius: inherit;
             padding: 2.5px;
+            /* 修正漸層節點，確保 95度光源受光面極度清晰 */
             background: linear-gradient(
                 95deg, 
-                rgba(255, 255, 255, 0.9) 0%, 
-                rgba(255, 255, 255, 0.4) 12%, 
-                rgba(255, 255, 255, 0) 40%, 
+                rgba(255, 255, 255, 0.95) 0%, 
+                rgba(255, 255, 255, 0.4) 15%, 
+                rgba(255, 255, 255, 0) 45%, 
                 rgba(0, 0, 0, 0) 80%,
-                rgba(0, 0, 0, 0, 0.2) 90%,
+                rgba(0, 0, 0, 0.15) 92%,
                 rgba(255, 255, 255, 0.3) 100%
             );
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor;
             mask-composite: exclude;
-            /* 核心修復：這層只是視覺效果，絕對不允許攔截點擊事件 */
             pointer-events: none !important; 
-            z-index: -1; 
+            z-index: 10; /* 提升至背景之上，確保邊框可見 */
         }
         
-        /* --- 小型元件的水晶玻璃效果 (維持原本顏色基礎) --- */
+        /* --- 小型元件的水晶效果 --- */
         .card-bg, input, select, .header-glass {
             position: relative;
             border: none !important;
             backdrop-filter: blur(8px) saturate(120%);
             -webkit-backdrop-filter: blur(8px) saturate(120%);
-            /* 這裡維持你原本要求的顏色基底 */
             background-clip: padding-box;
+            z-index: 1;
         }
         
         .header-glass { background-color: rgba(37, 99, 235, 0.6) !important; border-radius: 1rem; }
@@ -116,53 +116,46 @@
             border-radius: 1.5rem;
             box-shadow: 
                 0 10px 15px -3px rgba(0, 0, 0, 0.1),
-                inset 4px 1px 6px -1px rgba(255, 255, 255, 0.5); /* 小型元件的折射縮小 */
+                inset 4px 1px 6px -1px rgba(255, 255, 255, 0.5);
         }
         
-        input, select { 
-            background-color: rgba(255, 255, 255, 0.4) !important; 
-            border-radius: 0.75rem;
-            padding: 8px 12px;
-        }
-        
-        /* 讓小型元件也擁有邊緣高光，但 padding 縮小到 1.5px */
+        /* 小型元件的高亮偽元素 */
         .card-bg::before, input::before, select::before {
             content: "";
             position: absolute;
             inset: 0;
             border-radius: inherit;
             padding: 1.5px; 
-            background: linear-gradient(95deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 30%);
+            background: linear-gradient(95deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 40%);
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor;
             mask-composite: exclude;
             pointer-events: none;
+            z-index: 5;
         }
         
-        /* 確保內容在折射層之上 */
+        /* 確保內容在折射層之上，但不被 z-index 擋住點擊 */
         .glass-container > *, .card-bg > *, .header-glass > * {
             position: relative;
-            z-index: 1;
+            z-index: 20;
         }
         
-        /* --- 整合後的行動端優化 --- */
+        /* --- 行動端優化 --- */
         @media (max-width: 640px) {
             .glass-container {
-                margin-left: 10px !important;
-                margin-right: 10px !important;
+                margin: 0 10px !important;
                 width: calc(100% - 20px) !important;
-                
-                box-shadow: 
-                    20px 5px 40px -15px rgba(0, 0, 0, 0.35),
-                    inset 10px 2px 12px -2px rgba(255, 255, 255, 0.5), 
-                    inset -10px -2px 15px -3px rgba(0, 0, 0, 0.3);
-                    
                 border-radius: 2rem !important;
             }
         
             .glass-container::before {
-                border-radius: 2rem !important;
-                padding: 3px; /* 手機端邊框更明顯一點 */
+                padding: 3px; 
+                background: linear-gradient(
+                    95deg, 
+                    rgba(255, 255, 255, 0.9) 0%, 
+                    rgba(255, 255, 255, 0) 30%, 
+                    rgba(255, 255, 255, 0.2) 100%
+                );
             }
         }
     </style>
