@@ -405,23 +405,32 @@
             if (!submitBtn) return;
         
             const s = document.getElementById('seat-select').value;
-            
-            // 關鍵修改：如果還沒選座號，顯示「請先選擇座號」並禁用按鈕
+            const isUnlocked = globalData.emergencyUnlocked === true;
+        
+            // 優先權 1：檢查是否因為菜單未更新而被鎖定
+            if (!isMenuUpdated && !isUnlocked) {
+                submitBtn.classList.add('opacity-50', 'cursor-not-allowed', 'grayscale');
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = `<span>目前鎖定訂餐 (菜單未更新)</span>`;
+                return;
+            }
+        
+            // 優先權 2：檢查座號是否選擇
             if (!s) {
                 submitBtn.classList.add('opacity-50', 'cursor-not-allowed', 'grayscale');
-                submitBtn.disabled = true; // 確保實體按鈕也被禁用
+                submitBtn.disabled = true;
                 submitBtn.innerHTML = `<span>請先選擇座號</span>`;
                 return;
             }
         
+            // 優先權 3：檢查餘額
             const balance = globalData.balances[s] || 0;
             if (total > balance) {
-                // 餘額不足：按鈕變灰、禁用、顯示差額
                 submitBtn.classList.add('opacity-50', 'cursor-not-allowed', 'grayscale');
                 submitBtn.disabled = true;
                 submitBtn.innerHTML = `<span>餘額不足 (還差 $${total - balance})</span>`;
             } else {
-                // 餘額充足：恢復正常（移除所有變灰類別）
+                // 全部通過：恢復正常
                 submitBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'grayscale');
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = `<span>確認送出訂單</span>`;
@@ -445,22 +454,41 @@
         }
 
         async function sendOrder() {
-            if (!isMenuUpdated && !globalData.emergencyUnlocked) return alert("目前鎖定訂餐！");
+            // 1. 權限檢查：檢查是否鎖定 (除非管理員臨時解鎖)
+            if (!isMenuUpdated && !globalData.emergencyUnlocked) {
+                return alert("目前鎖定訂餐！(菜單未更新或已過訂餐時間)");
+            }
+            
+            // 2. 基本欄位檢查
             const seat = document.getElementById('seat-select').value;
-            if(!seat || selectedItems.length === 0) return alert("請選擇座號與餐點");
-            // --- 新增：餘額檢查邏輯 ---
+            if (!seat) return alert("請先選擇座號！");
+            if (selectedItems.length === 0) return alert("請至少選擇一項餐點！");
+        
+            // 3. 金額與餘額計算
             const totalCost = selectedItems.reduce((sum, item) => sum + Number(item.price), 0);
             const currentBalance = globalData.balances[seat] || 0;
+        
+            // 4. 餘額不足攔截
             if (currentBalance < totalCost) {
-                alert(`❌ 餘額不足，無法訂餐！\n----------------\n座號：${seat} 號\n目前餘額：$ ${currentBalance}\n訂單總額：$ ${totalCost}\n----------------\n請找管理員加值。`);
+                alert(`❌ 餘額不足，無法訂餐！\n----------------\n座號：${seat} 號\n目前餘額：$ ${currentBalance}\n訂單總額：$ ${totalCost}\n----------------\n請找管理員加值後再試。`);
                 return; 
             }
-            // 1. 整理餐點名稱清單
+        
+            // 5. 整理餐點清單文字 (例如: 雞排、珍奶)
             const itemNames = selectedItems.map(i => i.name).join('、');
-            // 2. 組成確認文字 (加入總金額顯示更貼心)
-            const confirmMsg = `核對訂購資訊：\n----------------\n座號：${seat} 號\n餐點：${itemNames}\n總計：$ ${totalCost}\n----------------\n確認送出訂單嗎？`;
-            if(!confirm(confirmMsg)) return;     
-            callAPI({ action: 'order', seat: seat, items: selectedItems });
+            
+            // 6. 彈出最終核對資訊
+            const confirmMsg = `核對訂購資訊：\n----------------\n座號：${seat} 號\n餐點：${itemNames}\n總計金額：$ ${totalCost}\n----------------\n確認要送出訂單嗎？`;
+        
+            if (!confirm(confirmMsg)) return;     
+            
+            // 7. 正式發送 API
+            callAPI({ 
+                action: 'order', 
+                seat: seat, 
+                items: selectedItems,
+                total: totalCost // 額外傳送總額給後端記錄或核對
+            });
         }
 
         async function cancelAllOrders() {
