@@ -6,7 +6,7 @@
     <title>119定餐系統 V3.4.4</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* 背景圖設定 */
+        /* --- 基礎環境與滾動條 --- */
         body {
             background-image: url('https://raw.githubusercontent.com/clhs114119/ordering-system/refs/heads/main/background%20image/d7280e77f44318b33151336fd901a472.jpeg'); 
             background-size: cover;
@@ -15,110 +15,129 @@
             background-repeat: no-repeat;
             margin: 0;
             padding: 0;
+            overflow-x: hidden; /* 防止行動端水平抖動 */
+            min-height: 100vh;
         }
-
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
         
-        /* 側邊選單 50% 透明 */
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { 
+            background: rgba(255, 255, 255, 0.2); 
+            border-radius: 10px; 
+        }
+        
+        /* --- 側邊選單：維持半透明與模糊 --- */
         #side-menu { 
             transition: transform 0.3s ease-in-out; 
             display: flex; 
             flex-direction: column;
             backdrop-filter: blur(15px);
             background-color: rgba(255, 255, 255, 0.5);
-        }
-
-        /* 主容器：精確光源（左側下偏5度）的高透水晶玻璃 */
-        .glass-container {
-            position: relative; 
-            
-            /* 1. 光源中心偏移：將掏空的中心點往左側稍微偏移，迎合光線進入的方向 */
-            background: radial-gradient(
-                circle at 20% 45%, 
-                rgba(255, 255, 255, 0) 45%, 
-                rgba(255, 255, 255, 0.08) 100%
-            ) !important;
-            
-            backdrop-filter: blur(1px) saturate(110%); 
-            -webkit-backdrop-filter: blur(1px) saturate(110%);
-            
-            border-radius: 2.5rem;
-            border: none !important; 
-            
-            /* 2. 物理陰影重新計算：X軸大幅推擠，Y軸微幅下沉 (比例約 10:1) */
-            box-shadow: 
-                /* 外部懸浮陰影：光從左來，陰影主要往右側投射，並微幅往下 */
-                20px 2px 40px -10px rgba(0, 0, 0, 0.25),        
-                /* 迎光面高光 (正左側邊緣)：強烈向右推擠 6px，向下推擠 0.5px (以 1px 近似) */
-                inset 6px 1px 10px rgba(255, 255, 255, 0.45),  
-                /* 背光面暗角 (正右側邊緣)：深色折射區在右側聚積，強化實體厚度 */
-                inset -6px -1px 12px rgba(0, 0, 0, 0.25),      
-                /* 玻璃介質的基礎環境光暈 */
-                inset 0 0 15px rgba(255, 255, 255, 0.05);     
+            z-index: 50;
         }
         
-        /* 3. 邊緣折射層：配合 95deg 光源重新標定高光與暗部節點 */
+        /* --- 主容器：物理折射水晶玻璃感 --- */
+        .glass-container {
+            position: relative;
+            /* 核心：中心極高透視 (50% 處掏空)，僅邊緣凝聚微弱底色 */
+            background: radial-gradient(
+                circle at 25% 45%, 
+                rgba(255, 255, 255, 0) 50%, 
+                rgba(255, 255, 255, 0.04) 100%
+            ) !important;
+            
+            /* 輕微模糊維持材質感，不影響櫥窗透明度 */
+            backdrop-filter: blur(1.5px) saturate(110%);
+            -webkit-backdrop-filter: blur(1.5px) saturate(110%);
+            
+            border-radius: 2.5rem;
+            border: none !important; /* 徹底捨棄標準邊框線條 */
+            
+            /* 95度光源物理陰影：X軸大幅推擠，Y軸微幅下沉 */
+            box-shadow: 
+                25px 5px 50px -15px rgba(0, 0, 0, 0.3),        /* 外部長投影 */
+                inset 10px 1px 15px -2px rgba(255, 255, 255, 0.35), /* 迎光面折射 (左) */
+                inset -12px -2px 18px -5px rgba(0, 0, 0, 0.2),      /* 背光面厚度 (右) */
+                inset 1px 0.5px 1px rgba(255, 255, 255, 0.5);      /* 極細微邊緣銳化 */
+        }
+        
+        /* 利用偽元素製作「非連續性」的高光折射邊緣 */
         .glass-container::before {
             content: "";
             position: absolute;
             inset: 0;
             border-radius: 2.5rem;
-            padding: 2.5px; 
+            padding: 1.5px; /* 物理倒角厚度 */
             
-            /* 95deg 漸層：光線從左方(略偏上)打入，右方(略偏下)穿出 */
+            /* 95deg 漸層：模擬光線從正左偏下切過邊緣的明暗變化 */
             background: linear-gradient(
                 95deg, 
-                rgba(255, 255, 255, 0.95) 0%,   /* 正左方：最強烈的直射高光 */
-                rgba(255, 255, 255, 0.1) 15%,   /* 光線進入後迅速衰減 */
-                rgba(255, 255, 255, 0) 50%,     /* 中心：維持高透視 */
-                rgba(0, 0, 0, 0.3) 85%,         /* 正右方內側：厚度造成的深色折射 */
-                rgba(255, 255, 255, 0.5) 100%   /* 正右方最外緣：環境光的二次反射 */
+                rgba(255, 255, 255, 0.95) 0%,    /* 左側強受光點 */
+                rgba(255, 255, 255, 0) 20%,     /* 快速消散避免成線 */
+                rgba(255, 255, 255, 0) 75%,     /* 頂部與底部透明 */
+                rgba(0, 0, 0, 0.15) 85%,        /* 右側物理折射暗面 */
+                rgba(255, 255, 255, 0.2) 100%   /* 底部環境反射 */
             );
             
+            /* 遮罩技術：掏空中心，只保留 padding 區域 */
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor;
             mask-composite: exclude;
             
-            pointer-events: none; 
+            pointer-events: none; /* 確保不干擾點擊 */
+            z-index: 0;
         }
-
-        /* 元件透明度 */
-        .header-glass { background-color: rgba(37, 99, 235, 0.6) !important; }
-        .card-bg { background-color: rgba(255, 255, 255, 0.45) !important; border: 1px solid rgba(255, 255, 255, 0.35); }
-        input, select { background-color: rgba(255, 255, 255, 0.4) !important; border: 1px solid rgba(255, 255, 255, 0.35); }
+        
+        /* 關鍵：確保容器內所有子元素（文字、按鈕）都在折射層上方 */
+        .glass-container > * {
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* --- UI 元件細節設定 --- */
+        .header-glass { 
+            background-color: rgba(37, 99, 235, 0.6) !important; 
+            backdrop-filter: blur(5px);
+        }
+        
+        .card-bg { 
+            background-color: rgba(255, 255, 255, 0.45) !important; 
+            border: 1px solid rgba(255, 255, 255, 0.35); 
+        }
+        
+        input, select { 
+            background-color: rgba(255, 255, 255, 0.4) !important; 
+            border: 1px solid rgba(255, 255, 255, 0.35); 
+        }
         
         .menu-btn-large { padding: 25px; margin: -25px; font-size: 2rem; }
-        .disabled-btn { background-color: rgba(203, 213, 225, 0.5) !important; cursor: not-allowed !important; opacity: 0.7; }
         
-        /* --- 行動端手機優化 --- */
+        .disabled-btn { 
+            background-color: rgba(203, 213, 225, 0.5) !important; 
+            cursor: not-allowed !important; 
+            opacity: 0.7; 
+        }
+        
+        /* --- 整合後的行動端 (Mobile) 優化方案 --- */
         @media (max-width: 640px) {
             .glass-container {
-                /* 1. 主容器內縮：左右留出 12px 空間，讓邊框折射現形 */
-                margin-left: 7px !important;
-                margin-right: 7px !important;
-                width: calc(100% - 14px) !important;
+                /* 1. 主容器左右內縮，確保邊緣折射可見 */
+                margin-left: 10px !important;
+                margin-right: 10px !important;
+                width: calc(100% - 20px) !important;
                 
-                /* 2. 強化行動端的折射感：手機亮度通常較高，稍微加強陰影對比 */
+                /* 2. 行動端受光補償：增加 X 軸偏移量與對比度 */
                 box-shadow: 
-                    15px 2px 30px -10px rgba(0, 0, 0, 0.3),        
-                    inset 8px 1px 12px rgba(255, 255, 255, 0.5),  /* 迎光面加強到 8px */
-                    inset -8px -1px 15px rgba(0, 0, 0, 0.3);      /* 背光面加強到 8px */
+                    15px 3px 30px -10px rgba(0, 0, 0, 0.3),
+                    inset 8px 1px 12px -2px rgba(255, 255, 255, 0.45),
+                    inset -8px -1px 15px -3px rgba(0, 0, 0, 0.25);
                     
-                /* 3. 調整圓角：配合縮小後的比例，圓角稍微收斂一點點 */
+                /* 3. 調整圓角比例 */
                 border-radius: 2rem !important;
             }
         
-            /* 同步修正偽元素的圓角，確保邊框高光對齊 */
             .glass-container::before {
                 border-radius: 2rem !important;
-                padding: 3px; /* 手機上加厚 0.5px，讓折射更明顯 */
-            }
-            
-            /* 修正 body 防止左右晃動 */
-            body {
-                overflow-x: hidden;
-                padding: 0;
+                padding: 2.2px; /* 稍微加寬折射面，適應手機螢幕像素密度 */
             }
         }
     </style>
