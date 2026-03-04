@@ -82,7 +82,7 @@
                 <div>
                     <p class="font-bold text-blue-700">V3.4.4 (Current)</p>
                     <p>• 加入餘額檢查功能</p>
-                    <p>• 介面細部美化</p>
+                    <p>• 細部功能優化</p>
                     <p>• 修復錯誤並提升穩定性</p>
                 </div>
                 <div>
@@ -265,64 +265,98 @@
         }
 
         function renderBaseUI() {
+            // 1. 初始化座號選單 (包含訂餐頁面與管理員加值頁面)
             const seatSelects = [document.getElementById('seat-select'), document.getElementById('recharge-seat')];
             seatSelects.forEach(s => {
+                if (!s) return;
                 s.innerHTML = '<option value="">請選擇座號</option>';
-                Object.keys(globalData.balances).sort((a,b)=>a-b).forEach(num => {
-                    const opt = document.createElement('option'); opt.value = num; opt.innerText = num + " 號";
+                Object.keys(globalData.balances).sort((a, b) => a - b).forEach(num => {
+                    const opt = document.createElement('option');
+                    opt.value = num;
+                    opt.innerText = num + " 號";
                     s.appendChild(opt);
                 });
             });
-
+        
+            // 2. 渲染今日菜單列表 (訂餐介面)
             const menuBox = document.getElementById('menu-list');
             menuBox.innerHTML = "";
             globalData.menu.forEach(item => {
                 const div = document.createElement('div');
+                // 預設樣式：高透玻璃感
                 div.className = "card-bg flex justify-between items-center p-4 border border-white/20 rounded-2xl cursor-pointer hover:bg-white/40 transition-all";
                 div.onclick = () => toggleItem(item, div);
-                div.innerHTML = `<span class="font-bold text-gray-800">${item.name}</span><span class="font-black text-gray-500">$${item.price}</span>`;
+                div.innerHTML = `
+                    <span class="font-bold text-gray-800">${item.name}</span>
+                    <span class="font-black text-gray-500">$${item.price}</span>
+                `;
                 menuBox.appendChild(div);
             });
-
+        
+            // 3. 渲染今日統計表格
             const tableBody = document.getElementById('stats-table-body');
             tableBody.innerHTML = "";
+            // 預設顯示前 15 項餐點統計
             for (let i = 1; i < 16; i++) {
                 const row = globalData.stats[i] || { name: "", qty: 0, total: 0 };
                 const tr = document.createElement('tr');
-                tr.innerHTML = `<td class="p-4 font-bold text-gray-700">${row.name || "---"}</td><td class="p-4 text-center">${row.qty || 0}</td><td class="p-4 text-right">$${row.total || 0}</td>`;
+                tr.className = "hover:bg-white/20 transition-colors";
+                tr.innerHTML = `
+                    <td class="p-4 font-bold text-gray-700">${row.name || "---"}</td>
+                    <td class="p-4 text-center">${row.qty || 0}</td>
+                    <td class="p-4 text-right font-mono">$${row.total || 0}</td>
+                `;
                 tableBody.appendChild(tr);
             }
+            // 更新統計頁腳總計
             document.getElementById('total-qty').innerText = globalData.stats[16]?.qty || 0;
             document.getElementById('total-sum').innerText = `$ ${globalData.stats[16]?.total || 0}`;
-
+        
+            // 4. 更新系統狀態標籤 (Status Tag) 與 訂餐鎖定邏輯
             const today = new Date().toLocaleDateString('en-CA');
-            const now = new Date();
             const tag = document.getElementById('status-tag');
-            const cancelBtn = document.getElementById('cancel-orders-btn');
             const orderBtn = document.getElementById('order-submit-btn');
             
             isMenuUpdated = (globalData.lastUpdated === today);
             const isUnlocked = globalData.emergencyUnlocked === true;
-
+        
             if (isUnlocked) {
                 tag.innerText = "下單暫時解鎖";
-                tag.style.backgroundColor = "rgba(168, 85, 247, 0.7)"; 
+                tag.className = "mt-1 text-[8px] tracking-widest uppercase px-3 py-1 rounded-full bg-purple-500/70 text-white inline-block";
                 orderBtn.classList.remove('disabled-btn');
-                if (now.getHours() >= 12) cancelBtn.innerText = "取消我今日所有訂單 (限 12:00 後)";
             } else {
                 tag.innerText = isMenuUpdated ? "菜單已更新" : "菜單未更新";
-                tag.style.backgroundColor = isMenuUpdated ? "rgba(34, 197, 94, 0.5)" : "rgba(249, 115, 22, 0.5)";
-                if (!isMenuUpdated) orderBtn.classList.add('disabled-btn');
+                tag.className = isMenuUpdated 
+                    ? "mt-1 text-[8px] tracking-widest uppercase px-3 py-1 rounded-full bg-green-500/50 text-white inline-block"
+                    : "mt-1 text-[8px] tracking-widest uppercase px-3 py-1 rounded-full bg-orange-500/50 text-white inline-block";
+                
+                if (!isMenuUpdated) {
+                    orderBtn.classList.add('disabled-btn');
+                } else {
+                    orderBtn.classList.remove('disabled-btn');
+                }
             }
-
+        
+            // 5. 渲染管理員頁面的價格修改清單
             const adminMenu = document.getElementById('admin-menu-edit');
-            adminMenu.innerHTML = "";
-            globalData.menu.forEach(item => {
-                const div = document.createElement('div');
-                div.className = "flex items-center gap-2 bg-white/20 p-2 rounded-lg text-xs mb-1";
-                div.innerHTML = `<span class="flex-1 font-bold text-gray-700">${item.name}</span><input type="number" data-id="${item.id}" class="w-16 p-1 rounded text-right price-input bg-white/10 text-gray-800" value="${item.price}">`;
-                adminMenu.appendChild(div);
-            });
+            if (adminMenu) {
+                adminMenu.innerHTML = "";
+                globalData.menu.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = "flex items-center gap-2 bg-white/20 p-2 rounded-lg text-xs mb-1";
+                    div.innerHTML = `
+                        <span class="flex-1 font-bold text-gray-700">${item.name}</span>
+                        <input type="number" data-id="${item.id}" 
+                            class="w-16 p-1 rounded text-right price-input bg-white/10 text-gray-800 border border-white/20" 
+                            value="${item.price}">
+                    `;
+                    adminMenu.appendChild(div);
+                });
+            }
+        
+            // 6. 重點優化：初始化按鈕狀態 (提示請先選擇座號)
+            // 傳入 0 代表目前選餐總額為 0
+            checkBalanceStatus(0); 
         }
 
         function toggleItem(item, div) {
@@ -372,19 +406,22 @@
         
             const s = document.getElementById('seat-select').value;
             
-            // 如果還沒選座號，不要顯示餘額不足，顯示請選擇座號
+            // 關鍵修改：如果還沒選座號，顯示「請先選擇座號」並禁用按鈕
             if (!s) {
-                submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                submitBtn.classList.add('opacity-50', 'cursor-not-allowed', 'grayscale');
+                submitBtn.disabled = true; // 確保實體按鈕也被禁用
                 submitBtn.innerHTML = `<span>請先選擇座號</span>`;
                 return;
             }
         
             const balance = globalData.balances[s] || 0;
             if (total > balance) {
+                // 餘額不足：按鈕變灰、禁用、顯示差額
                 submitBtn.classList.add('opacity-50', 'cursor-not-allowed', 'grayscale');
                 submitBtn.disabled = true;
                 submitBtn.innerHTML = `<span>餘額不足 (還差 $${total - balance})</span>`;
             } else {
+                // 餘額充足：恢復正常（移除所有變灰類別）
                 submitBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'grayscale');
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = `<span>確認送出訂單</span>`;
