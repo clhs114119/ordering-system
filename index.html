@@ -29,19 +29,56 @@
             background-color: rgba(255, 255, 255, 0.5);
         }
 
-        /* 主容器：高透玻璃折射感 */
+        /* 主容器：頂級水晶櫥窗玻璃 - 中心極致高透，邊緣厚實折射 */
         .glass-container {
-            background-color: rgba(255, 255, 255, 0.05) !important;
-            backdrop-filter: blur(none); 
-            -webkit-backdrop-filter: blur(0.5px);
-    
-            /* 1. 強化邊框：將 0.1 提高到 0.4，並可考慮將 1px 改為 1.5px 或 2px */
-            border: 2.5px solid rgba(255, 255, 255, 0.3); 
-
+            position: relative; /* 定位邊緣折射層 */
+            
+            /* 1. 掏空中心：改用徑向漸層，讓中心 50% 範圍完全透明，只在邊緣凝聚出玻璃實體感 */
+            background: radial-gradient(
+                circle at center, 
+                rgba(255, 255, 255, 0) 40%, 
+                rgba(255, 255, 255, 0.08) 100%
+            ) !important;
+            
+            /* 2. 移除整面大霧：將 blur 降到 1px (消除像素感)，並稍微提升飽和度保持玻璃光澤 */
+            backdrop-filter: blur(1px) saturate(110%); 
+            -webkit-backdrop-filter: blur(1px) saturate(110%);
+            
+            border-radius: 2.5rem;
+            border: none !important; /* 徹底棄用實體邊框 */
+            
+            /* 3. 邊緣厚度推擠：將內陰影的範圍縮小、往邊緣靠攏，不干擾中心透視 */
             box-shadow: 
-                0 10px 40px rgba(0, 0, 0, 0.05), 
-                /* 2. 強化邊緣高光：將內高光的 0.05 提高到 0.2，增加邊緣的厚實感 */
-                inset 0 0 15px rgba(255, 255, 255, 0.05); 
+                0 20px 40px -10px rgba(0, 0, 0, 0.25),        /* 外部懸浮陰影 */
+                inset 4px 4px 10px rgba(255, 255, 255, 0.4),  /* 迎光面的曲面高光 (推向邊界) */
+                inset -4px -4px 12px rgba(0, 0, 0, 0.2),      /* 背光面的深色厚度 (推向邊界) */
+                inset 0 0 15px rgba(255, 255, 255, 0.05);     /* 邊緣極微弱的光暈過渡 */
+        }
+
+        /* 4. 邊緣折射層 (核心)：利用偽元素與遮罩，渲染流動且具備厚度的實體邊角 */
+        .glass-container::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: 2.5rem;
+            padding: 2.5px; /* 這裡定義了玻璃邊角的「物理倒角厚度」 */
+            
+            /* 光學漸層：模擬光線在邊角曲面上的高亮反射、折射衰減與底部暗角 */
+            background: linear-gradient(
+                135deg, 
+                rgba(255, 255, 255, 0.9) 0%,   /* 左上：最強迎光點 */
+                rgba(255, 255, 255, 0.1) 25%,  /* 曲面過渡 */
+                rgba(255, 255, 255, 0) 50%,    /* 中心：無折射 */
+                rgba(0, 0, 0, 0.25) 75%,       /* 右下內側：深色折射厚度 */
+                rgba(255, 255, 255, 0.4) 100%  /* 右下外側：環境反射光 */
+            );
+            
+            /* 使用 Mask 掏空中心，讓這個複雜漸層只存在於 padding (2.5px) 的邊緣區域 */
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            
+            pointer-events: none; /* 確保不阻擋滑鼠點擊內部元素 */
         }
 
         /* 元件透明度 */
