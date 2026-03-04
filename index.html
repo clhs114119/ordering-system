@@ -321,10 +321,26 @@
             }
             document.getElementById('total-amount').innerText = `$ ${selectedItems.reduce((s,i)=>s+Number(i.price), 0)}`;
         }
-
+        
         function updateBalanceDisplay() {
             const s = document.getElementById('seat-select').value;
-            document.getElementById('balance-val').innerText = `$ ${globalData.balances[s] || 0}`;
+            const balance = globalData.balances[s] || 0;
+            const displayElement = document.getElementById('balance-val');
+    
+            // 更新數值文字
+            displayElement.innerText = `$ ${balance}`;
+    
+            // 移除舊的顏色類別，確保重新計算
+            displayElement.classList.remove('text-blue-700', 'text-red-500', 'text-yellow-500');
+
+            // 根據餘額判斷顏色邏輯
+            if (balance < 0) {
+                displayElement.classList.add('text-red-500'); // 少於 0 元：紅色
+            } else if (balance < 150) {
+                displayElement.classList.add('text-yellow-500'); // 少於 150 元：黃色
+            } else {
+                displayElement.classList.add('text-blue-700'); // 大於等於 150 元：原本的藍色
+            }
         }
 
         function calcRecharge() {
