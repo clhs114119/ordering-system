@@ -25,27 +25,42 @@
             border-radius: 10px; 
         }
         
-        /* --- 漢堡選單修正：精準垂直水平至中 --- */
+        /* --- 漢堡選單修復：解決點擊偏移與熱區問題 --- */
         .menu-btn-large { 
             position: relative; 
-            z-index: 200;       
-            width: 60px;        /* 固定寬度確保點擊熱區穩定 */
-            height: 60px;       /* 固定高度 */
-            padding: 0;         /* 移除 padding 避免推擠偏移 */
+            z-index: 999;       /* 提升至最高層級，避免被玻璃層阻擋 */
+            width: 64px;        /* 稍微加大容器 */
+            height: 64px;       
+            padding: 0;         
             margin: 0;
             font-size: 2.5rem !important; 
-            line-height: 1;     /* 關鍵：強制行高為 1，避免字體基準線偏移 */
-            display: flex;
-            align-items: center;    /* 垂直居中 */
-            justify-content: center; /* 水平居中 */
+            line-height: 1;     
+            display: inline-flex; /* 改為 inline-flex 確保父層容器不壓縮 */
+            align-items: center;    
+            justify-content: center; 
             cursor: pointer;
             background: transparent;
             border: none;
             outline: none;
             pointer-events: auto !important; 
-            transform: translateY(-2px);
+            /* 視覺修正：確保圖示在物理中心 */
+            transform: translateY(-2px); 
         }
-        .menu-btn-large:active { transform: scale(0.9); }
+
+        /* 核心修復：使用偽元素擴大點擊感應區，解決「只能點下方」的問題 */
+        .menu-btn-large::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 80px;  /* 感應區比視覺大，增加容錯率 */
+            height: 80px;
+            transform: translate(-50%, -50%);
+            background: transparent;
+            z-index: 1000;
+        }
+
+        .menu-btn-large:active { transform: translateY(-2px) scale(0.9); }
         
         /* --- 側邊選單 --- */
         #side-menu { 
@@ -54,7 +69,7 @@
             flex-direction: column;
             backdrop-filter: blur(15px);
             background-color: rgba(255, 255, 255, 0.5);
-            z-index: 150; 
+            z-index: 500; /* 高於內容但低於按鈕 */
         }
         
         /* --- 水晶玻璃核心效果 --- */
@@ -65,27 +80,26 @@
                 rgba(255, 255, 255, 0) 85%, 
                 rgba(255, 255, 255, 0.05) 100%
             ) !important;
-            /* 調整模糊度以增加清晰感 */
             backdrop-filter: blur(0.5px) saturate(110%);
             -webkit-backdrop-filter: blur(0.5px) saturate(110%);
             border-radius: 2.5rem;
             border: none !important; 
-            /* 強化陰影深度，讓物理體積更明顯 */
             box-shadow: 
                 30px 10px 60px -20px rgba(0, 0, 0, 0.4), 
                 inset 12px 2px 15px -2px rgba(255, 255, 255, 0.45), 
                 inset -15px -3px 20px -5px rgba(0, 0, 0, 0.25),
                 inset 1px 1px 1px rgba(255, 255, 255, 0.3);
+            /* 防止容器溢出擋住選單點擊 */
+            z-index: 10;
         }
         
-        /* 修復後的邊緣折射層：提升層級並修正語法 */
+        /* 邊緣折射層：確保不攔截滑鼠事件 */
         .glass-container::before {
             content: "";
             position: absolute;
             inset: 0;
             border-radius: inherit;
             padding: 2.5px;
-            /* 修正漸層節點，確保 95度光源受光面極度清晰 */
             background: linear-gradient(
                 95deg, 
                 rgba(255, 255, 255, 0.95) 0%, 
@@ -98,8 +112,8 @@
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor;
             mask-composite: exclude;
-            pointer-events: none !important; 
-            z-index: 10; /* 提升至背景之上，確保邊框可見 */
+            pointer-events: none !important; /* 絕對不能攔截點擊 */
+            z-index: 20; 
         }
         
         /* --- 小型元件的水晶效果 --- */
@@ -137,10 +151,10 @@
             z-index: 5;
         }
         
-        /* 確保內容在折射層之上，但不被 z-index 擋住點擊 */
+        /* 內容層級 */
         .glass-container > *, .card-bg > *, .header-glass > * {
             position: relative;
-            z-index: 20;
+            z-index: 30;
         }
         
         /* --- 行動端優化 --- */
