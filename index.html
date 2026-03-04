@@ -364,21 +364,25 @@
             checkBalanceStatus(total); 
         }
         
-        // 輔助函數：統一控制送出按鈕的狀態
         function checkBalanceStatus(total) {
             const submitBtn = document.querySelector('button[onclick="sendOrder()"]');
             if (!submitBtn) return;
         
             const s = document.getElementById('seat-select').value;
-            const balance = globalData.balances[s] || 0;
+            
+            // 如果還沒選座號，不要顯示餘額不足，顯示請選擇座號
+            if (!s) {
+                submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                submitBtn.innerHTML = `<span>請先選擇座號</span>`;
+                return;
+            }
         
+            const balance = globalData.balances[s] || 0;
             if (total > balance) {
-                // 餘額不足：按鈕變灰、禁用、顯示差額
                 submitBtn.classList.add('opacity-50', 'cursor-not-allowed', 'grayscale');
                 submitBtn.disabled = true;
                 submitBtn.innerHTML = `<span>餘額不足 (還差 $${total - balance})</span>`;
             } else {
-                // 餘額充足：恢復正常
                 submitBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'grayscale');
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = `<span>確認送出訂單</span>`;
