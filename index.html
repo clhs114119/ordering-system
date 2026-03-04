@@ -25,16 +25,23 @@
             border-radius: 10px; 
         }
         
-        /* --- 漢堡選單圖示加大 (≡) --- */
+        /* --- 漢堡選單修正：確保 100% 精準點擊 --- */
         .menu-btn-large { 
-            padding: 20px; 
-            margin: -15px; 
-            font-size: 2.5rem !important; /* 加大圖示尺寸 */
+            position: relative; /* 必須加上，為了 Z-index 有效 */
+            z-index: 200;       /* 確保高於所有玻璃折射層 (原本最高是 100) */
+            padding: 15px;      /* 合理的內距 */
+            margin-left: 0;     /* 移除可能導致偏移的負 margin */
+            font-size: 2.5rem !important; 
             line-height: 1;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: transform 0.2s ease;
+            cursor: pointer;
+            background: transparent;
+            border: none;
+            outline: none;
+            /* 核心修復：防止點擊被偽元素攔截 */
+            pointer-events: auto !important; 
         }
         .menu-btn-large:active { transform: scale(0.9); }
         
@@ -45,7 +52,7 @@
             flex-direction: column;
             backdrop-filter: blur(15px);
             background-color: rgba(255, 255, 255, 0.5);
-            z-index: 100;
+            z-index: 150; /* 略低於漢堡按鈕，確保選單開啟時按鈕依然可點擊 */
         }
         
         /* --- 水晶玻璃核心效果 (可複用) --- */
@@ -69,11 +76,11 @@
         }
         
         /* 玻璃邊緣折射層 (偽元素) */
-        .glass-container::before, .crystal-component::before {
+        .glass-container::before, .crystal-component::before, .card-bg::before, input::before, select::before {
             content: "";
             position: absolute;
             inset: 0;
-            border-radius: inherit; /* 自動跟隨父層圓角 */
+            border-radius: inherit;
             padding: 2.5px;
             background: linear-gradient(
                 95deg, 
@@ -87,8 +94,9 @@
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor;
             mask-composite: exclude;
-            pointer-events: none;
-            z-index: 0;
+            /* 核心修復：這層只是視覺效果，絕對不允許攔截點擊事件 */
+            pointer-events: none !important; 
+            z-index: -1; 
         }
         
         /* --- 小型元件的水晶玻璃效果 (維持原本顏色基礎) --- */
