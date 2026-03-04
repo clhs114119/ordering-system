@@ -91,32 +91,34 @@
         .menu-btn-large { padding: 25px; margin: -25px; font-size: 2rem; }
         .disabled-btn { background-color: rgba(203, 213, 225, 0.5) !important; cursor: not-allowed !important; opacity: 0.7; }
         
-        /* ==========================================
-           手機端 (高 DPI 螢幕) 邊緣光學與厚度強化
-           ========================================== */
-        @media (max-width: 768px) {
+        /* --- 行動端手機優化 --- */
+        @media (max-width: 640px) {
             .glass-container {
-                /* 1. 增強內外陰影的對比度與擴散範圍，抵抗手機的高亮背光 */
+                /* 1. 主容器內縮：左右留出 12px 空間，讓邊框折射現形 */
+                margin-left: 12px !important;
+                margin-right: 12px !important;
+                width: calc(100% - 24px) !important;
+                
+                /* 2. 強化行動端的折射感：手機亮度通常較高，稍微加強陰影對比 */
                 box-shadow: 
-                    20px 2px 40px -10px rgba(0, 0, 0, 0.35),        
-                    inset 8px 1px 12px rgba(255, 255, 255, 0.7),  /* 迎光面：向內推擠加深，白光增強 */
-                    inset -8px -1px 16px rgba(0, 0, 0, 0.35),     /* 背光面：暗角加深，強化玻璃厚重的立體感 */
-                    inset 0 0 15px rgba(255, 255, 255, 0.1);      
+                    15px 2px 30px -10px rgba(0, 0, 0, 0.3),        
+                    inset 8px 1px 12px rgba(255, 255, 255, 0.5),  /* 迎光面加強到 8px */
+                    inset -8px -1px 15px rgba(0, 0, 0, 0.3);      /* 背光面加強到 8px */
+                    
+                /* 3. 調整圓角：配合縮小後的比例，圓角稍微收斂一點點 */
+                border-radius: 2rem !important;
             }
         
+            /* 同步修正偽元素的圓角，確保邊框高光對齊 */
             .glass-container::before {
-                /* 2. 增加邊角折射層的物理厚度，對抗像素壓縮 */
-                padding: 4px; 
-                
-                /* 3. 提升漸層的極端對比值 (更亮的白與更暗的黑) */
-                background: linear-gradient(
-                    95deg, 
-                    rgba(255, 255, 255, 1) 0%,     /* 左方高光：推到極致純白 */
-                    rgba(255, 255, 255, 0.35) 15%, /* 減緩衰減速度，保留更多亮部 */
-                    rgba(255, 255, 255, 0) 50%,    /* 中心依然保持高透 */
-                    rgba(0, 0, 0, 0.5) 85%,        /* 右方暗角：加深折射陰影 */
-                    rgba(255, 255, 255, 0.8) 100%  /* 右方邊緣：大幅增強環境光的二次反射 */
-                );
+                border-radius: 2rem !important;
+                padding: 3px; /* 手機上加厚 0.5px，讓折射更明顯 */
+            }
+            
+            /* 修正 body 防止左右晃動 */
+            body {
+                overflow-x: hidden;
+                padding: 0;
             }
         }
     </style>
