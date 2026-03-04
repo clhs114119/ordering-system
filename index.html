@@ -25,22 +25,26 @@
             border-radius: 10px; 
         }
         
-        /* --- 漢堡選單修正：確保 100% 精準點擊 --- */
+        /* --- 漢堡選單修正：精準垂直水平至中 --- */
         .menu-btn-large { 
             position: relative; 
             z-index: 200;       
-            padding: 15px;      
-            margin-left: 0;     
+            width: 60px;        /* 固定寬度確保點擊熱區穩定 */
+            height: 60px;       /* 固定高度 */
+            padding: 0;         /* 移除 padding 避免推擠偏移 */
+            margin: 0;
             font-size: 2.5rem !important; 
-            line-height: 1;
+            line-height: 1;     /* 關鍵：強制行高為 1，避免字體基準線偏移 */
             display: flex;
-            align-items: center;
-            justify-content: center;
+            align-items: center;    /* 垂直居中 */
+            justify-content: center; /* 水平居中 */
             cursor: pointer;
             background: transparent;
             border: none;
             outline: none;
             pointer-events: auto !important; 
+            /* 修正微小的視覺偏差：有些字體 ≡ 符號物理重心偏下，若仍覺得偏低可加入下方： */
+            /* transform: translateY(-2px); */
         }
         .menu-btn-large:active { transform: scale(0.9); }
         
