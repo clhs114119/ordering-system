@@ -6,7 +6,7 @@
     <title>119定餐系統 V3.4.5</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* --- 基礎環境與背景 --- */
+        /* --- 基礎環境設定 --- */
         body {
             background-image: url('https://raw.githubusercontent.com/clhs114119/ordering-system/refs/heads/main/background%20image/d7280e77f44318b33151336fd901a472.jpeg'); 
             background-size: cover;
@@ -19,116 +19,131 @@
             min-height: 100vh;
         }
         
-        /* --- 漢堡選單圖示加大 --- */
-        #menu-toggle, .menu-icon {
-            font-size: 2.5rem !important; /* 顯著加大 */
-            cursor: pointer;
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { 
+            background: rgba(255, 255, 255, 0.2); 
+            border-radius: 10px; 
+        }
+        
+        /* --- 漢堡選單圖示加大 (≡) --- */
+        .menu-btn-large { 
+            padding: 20px; 
+            margin: -15px; 
+            font-size: 2.5rem !important; /* 加大圖示尺寸 */
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             transition: transform 0.2s ease;
         }
-        #menu-toggle:active { transform: scale(0.9); }
+        .menu-btn-large:active { transform: scale(0.9); }
         
-        /* --- 核心：水晶玻璃通用樣式 (Mixin 邏輯) --- */
-        .crystal-glass {
+        /* --- 側邊選單 --- */
+        #side-menu { 
+            transition: transform 0.3s ease-in-out; 
+            display: flex; 
+            flex-direction: column;
+            backdrop-filter: blur(15px);
+            background-color: rgba(255, 255, 255, 0.5);
+            z-index: 100;
+        }
+        
+        /* --- 水晶玻璃核心效果 (可複用) --- */
+        /* 主容器：維持極致透明度與重厚邊框 */
+        .glass-container {
             position: relative;
-            border: none !important;
-            backdrop-filter: blur(0.5px) saturate(115%);
-            -webkit-backdrop-filter: blur(0.5px) saturate(115%);
-            /* 核心漸層：邊緣聚光，中央 85% 掏空 */
             background: radial-gradient(
                 circle at 25% 45%, 
                 rgba(255, 255, 255, 0) 85%, 
-                rgba(255, 255, 255, 0.08) 100%
+                rgba(255, 255, 255, 0.05) 100%
             ) !important;
-            /* 物理深度陰影 */
+            backdrop-filter: blur(0.5px) saturate(110%);
+            -webkit-backdrop-filter: blur(0.5px) saturate(110%);
+            border-radius: 2.5rem;
+            border: none !important; 
             box-shadow: 
-                15px 10px 30px -15px rgba(0, 0, 0, 0.3),
-                inset 8px 2px 12px -2px rgba(255, 255, 255, 0.4),
-                inset -10px -3px 15px -5px rgba(0, 0, 0, 0.2),
-                inset 0 0 1px rgba(255, 255, 255, 0.3);
+                30px 10px 60px -20px rgba(0, 0, 0, 0.4), 
+                inset 12px 2px 15px -2px rgba(255, 255, 255, 0.45), 
+                inset -15px -3px 20px -5px rgba(0, 0, 0, 0.25),
+                inset 1px 1px 1px rgba(255, 255, 255, 0.3);
         }
         
-        /* 水晶玻璃的厚度折射層 (::before) */
-        .crystal-glass::before {
+        /* 玻璃邊緣折射層 (偽元素) */
+        .glass-container::before, .crystal-component::before {
             content: "";
             position: absolute;
             inset: 0;
             border-radius: inherit; /* 自動跟隨父層圓角 */
-            padding: 2.2px; /* 物理倒角厚度 */
+            padding: 2.5px;
             background: linear-gradient(
                 95deg, 
-                rgba(255, 255, 255, 0.9) 0%,    
-                rgba(255, 255, 255, 0.4) 15%,   
-                rgba(255, 255, 255, 0) 45%,     
-                rgba(0, 0, 0, 0.1) 85%,         
-                rgba(255, 255, 255, 0.3) 100%   
+                rgba(255, 255, 255, 0.9) 0%, 
+                rgba(255, 255, 255, 0.4) 12%, 
+                rgba(255, 255, 255, 0) 40%, 
+                rgba(255, 255, 255, 0.3) 100%
             );
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        /* --- 小型元件的水晶玻璃效果 (維持原本顏色基礎) --- */
+        .card-bg, input, select, .header-glass {
+            position: relative;
+            border: none !important;
+            backdrop-filter: blur(8px) saturate(120%);
+            -webkit-backdrop-filter: blur(8px) saturate(120%);
+            /* 這裡維持你原本要求的顏色基底 */
+            background-clip: padding-box;
+        }
+        
+        .header-glass { background-color: rgba(37, 99, 235, 0.6) !important; border-radius: 1rem; }
+        
+        .card-bg { 
+            background-color: rgba(255, 255, 255, 0.45) !important; 
+            border-radius: 1.5rem;
+            box-shadow: 
+                0 10px 15px -3px rgba(0, 0, 0, 0.1),
+                inset 4px 1px 6px -1px rgba(255, 255, 255, 0.5); /* 小型元件的折射縮小 */
+        }
+        
+        input, select { 
+            background-color: rgba(255, 255, 255, 0.4) !important; 
+            border-radius: 0.75rem;
+            padding: 8px 12px;
+        }
+        
+        /* 讓小型元件也擁有邊緣高光，但 padding 縮小到 1.5px */
+        .card-bg::before, input::before, select::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            padding: 1.5px; 
+            background: linear-gradient(95deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 30%);
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor;
             mask-composite: exclude;
             pointer-events: none;
         }
         
-        /* --- 應用到具體元件：維持顏色並加入水晶質感 --- */
-        
-        /* 1. 主容器 */
-        .glass-container {
-            @extend .crystal-glass; /* 邏輯複用 */
-            border-radius: 2.5rem;
-            margin-bottom: 2rem;
-        }
-        
-        /* 2. Header：維持藍色基調 + 水晶折射 */
-        .header-glass {
-            background: linear-gradient(135deg, rgba(37, 99, 235, 0.7), rgba(29, 78, 216, 0.5)) !important;
+        /* 確保內容在折射層之上 */
+        .glass-container > *, .card-bg > *, .header-glass > * {
             position: relative;
-            border: none !important;
-            box-shadow: inset 5px 1px 10px rgba(255,255,255,0.3);
-        }
-        
-        /* 3. 卡片元件：維持白底 + 水晶折射 */
-        .card-bg {
-            background: rgba(255, 255, 255, 0.35) !important;
-            border-radius: 1.5rem;
-            position: relative;
-            transition: transform 0.2s ease;
-        }
-        .card-bg:hover { transform: translateY(-3px); }
-        
-        /* 4. 輸入框與選擇框：水晶質感化 */
-        input, select {
-            background: rgba(255, 255, 255, 0.25) !important;
-            border-radius: 0.75rem !important;
-            padding: 10px 15px !important;
-            color: #1e293b;
-            box-shadow: inset 2px 2px 5px rgba(255,255,255,0.2);
-        }
-        
-        /* 5. 側邊選單：維持原色模糊但加入邊緣折射 */
-        #side-menu {
-            transition: transform 0.3s ease-in-out;
-            background: rgba(255, 255, 255, 0.6);
-            backdrop-filter: blur(20px);
-            z-index: 50;
-            box-shadow: -5px 0 30px rgba(0,0,0,0.1);
+            z-index: 1;
         }
         
         /* --- 行動端優化 --- */
         @media (max-width: 640px) {
-            .glass-container {
-                margin: 0 10px 1.5rem 10px !important;
-                width: calc(100% - 20px) !important;
-                border-radius: 2rem;
-            }
+            .menu-btn-large { font-size: 2.2rem !important; }
             
-            #menu-toggle, .menu-icon {
-                font-size: 2.2rem !important;
+            .glass-container {
+                margin: 0 10px !important;
+                width: calc(100% - 20px) !important;
+                border-radius: 2rem !important;
             }
-        }
-        
-        /* 確保所有水晶元件內容可點擊 */
-        .crystal-glass > *, .glass-container > *, .card-bg > * {
-            position: relative;
-            z-index: 1;
         }
     </style>
 </head>
