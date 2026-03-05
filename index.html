@@ -6,8 +6,9 @@
     <title>119定餐系統 V3.5.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* --- 基礎 HTML 與 環境設置 --- */
+        /* --- 1. 基礎 HTML 與 環境設置 --- */
         html {
+            /* 修正 iOS 底部空白並設定載入底色 */
             height: -webkit-fill-available;
             background-color: #1a1a1a; 
             margin: 0;
@@ -21,7 +22,7 @@
             min-height: 100vh;
             min-height: -webkit-fill-available; 
             
-            /* --- 預設背景：直向 --- */
+            /* 預設背景：直向 (Portrait) */
             background-image: url('./background%20image/d7280e77f44318b33151336fd901a472.jpeg'); 
             background-size: cover;
             background-position: center center;
@@ -34,13 +35,14 @@
             -moz-osx-font-smoothing: grayscale;
         }
         
-        /* --- 響應式背景與光源：橫向 (電腦/平板/手機橫放) --- */
+        /* --- 2. 響應式：橫向模式 (電腦/平板/手機橫放) --- */
         @media (orientation: landscape) {
             body {
+                /* 橫向背景圖 */
                 background-image: url('./background%20image/XsnP8vwC8AY1xMKJgRYqbA_RTy6BIExoDexX-xC8Oag.jpeg'); 
             }
         
-            /* 橫向模式：修正光源為右上 45 度 (225deg 指向左下) */
+            /* 橫向光源校正：右上 45 度 (225deg) */
             .glass-container::before {
                 background: linear-gradient(
                     225deg, 
@@ -52,13 +54,13 @@
                 ) !important;
             }
         
-            /* 小型元件同步修正為右上光源 */
+            /* 小型元件同步修正光源角度 */
             .card-bg::before, input::before, select::before {
-                background: linear-gradient(225deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 40%) !important;
+                background: linear-gradient(225deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 50%) !important;
             }
         }
         
-        /* --- 背景防斷層補丁 --- */
+        /* --- 3. 背景防斷層補丁 (終極防白邊) --- */
         body::before {
             content: "";
             position: fixed;
@@ -66,7 +68,7 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            background-image: inherit;
+            background-image: inherit; /* 自動跟隨 body 的圖片切換 */
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
@@ -74,40 +76,27 @@
             pointer-events: none;
         }
         
-        /* --- 捲軸樣式優化 --- */
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { 
-            background: rgba(255, 255, 255, 0.2); 
-            border-radius: 10px; 
-        }
-        
-        /* --- 漢堡選單：強制固定尺寸與位置 --- */
+        /* --- 4. 漢堡選單 (≡)：尺寸與熱區歸位 --- */
         .menu-btn-large { 
             position: relative; 
             z-index: 9999 !important; 
-            /* 強制設定寬高與字體大小，避免被其他樣式覆蓋 */
             width: 64px !important;        
             height: 64px !important;       
-            font-size: 2.8rem !important; 
-            
-            margin: 0;
-            padding: 0;
+            font-size: 2.8rem !important; /* 強制大尺寸 */
             line-height: 1 !important;     
             display: inline-flex !important; 
             align-items: center !important;    
             justify-content: center !important; 
-            
             cursor: pointer;
             background: transparent;
             border: none;
             outline: none;
             pointer-events: auto !important;
             vertical-align: middle;
-            /* 這裡維持 transform: none，確保點擊熱區不偏移 */
-            transform: none !important; 
+            transform: none !important; /* 防止點擊位移 */
         }
         
-        /* 確保點擊熱區維持 70px，不受視覺尺寸影響 */
+        /* 透明點擊熱區補丁 */
         .menu-btn-large::before {
             content: "";
             position: absolute;
@@ -125,17 +114,7 @@
             opacity: 0.7; 
         }
         
-        /* --- 側邊選單 --- */
-        #side-menu { 
-            transition: transform 0.3s ease-in-out; 
-            display: flex; 
-            flex-direction: column;
-            backdrop-filter: blur(15px);
-            background-color: rgba(255, 255, 255, 0.5);
-            z-index: 1500; 
-        }
-        
-        /* --- 水晶玻璃核心效果 --- */
+        /* --- 5. 水晶玻璃核心效果 (直向預設) --- */
         .glass-container {
             position: relative;
             background: radial-gradient(circle at 25% 45%, rgba(255, 255, 255, 0) 85%, rgba(255, 255, 255, 0.05) 100%) !important;
@@ -173,19 +152,11 @@
             z-index: 20; 
         }
         
-        /* --- 小型元件與 Header --- */
-        .header-glass { 
-            position: relative;
-            background-color: rgba(37, 99, 235, 0.6) !important; 
-            backdrop-filter: blur(5px);
-            z-index: 100;
-        }
-        
+        /* --- 6. 小型元件與取消按鈕 --- */
         .card-bg, input, select {
             position: relative;
             border: none !important;
             backdrop-filter: blur(8px) saturate(120%);
-            -webkit-backdrop-filter: blur(8px) saturate(120%);
             z-index: 1;
         }
         
@@ -195,7 +166,7 @@
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), inset 4px 1px 6px -1px rgba(255, 255, 255, 0.5);
         }
         
-        /* 直向小型元件預設光源 */
+        /* 直向小型元件高光 */
         .card-bg::before, input::before, select::before {
             content: "";
             position: absolute;
@@ -210,28 +181,33 @@
             z-index: 5;
         }
         
-        .glass-container > *, .card-bg > *, .header-glass > * {
+        /* 取消按鈕強化 (清晰度修復) */
+        #cancel-orders-btn {
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8) !important;
+            backdrop-filter: blur(5px) !important;
+            letter-spacing: 0.5px;
+            font-weight: bold;
+        }
+        
+        /* --- 7. 其他優化 --- */
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { 
+            background: rgba(255, 255, 255, 0.2); 
+            border-radius: 10px; 
+        }
+        
+        .glass-container > *, .card-bg > * {
             position: relative;
             z-index: 30;
         }
         
-        /* --- 行動端優化 (手機直向) --- */
+        /* 手機直向專屬微調 */
         @media (max-width: 640px) and (orientation: portrait) {
             .glass-container {
                 margin: 10px !important;
                 width: calc(100% - 20px) !important;
                 border-radius: 2rem !important;
             }
-            .glass-container::before {
-                background: linear-gradient(95deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0) 30%, rgba(255,255,255,0.2) 100%);
-            }
-        }
-        
-        /* 針對取消按鈕的深度強化 */
-        #cancel-orders-btn {
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(5px);
-            letter-spacing: 0.5px;
         }
     </style>
 </head>
