@@ -6,17 +6,24 @@
     <title>119定餐系統 V3.5.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* --- 基礎環境設定 --- */
         body {
             background-image: url('https://raw.githubusercontent.com/clhs114119/ordering-system/refs/heads/main/background%20image/d7280e77f44318b33151336fd901a472.jpeg'); 
             background-size: cover;
-            background-position: top center;
-            background-attachment: fixed;
+            background-position: center center; /* 改為中心對齊 */
+            background-attachment: fixed; /* 讓背景固定，內容滾動 */
             background-repeat: no-repeat;
+            background-color: #1a1a1a; /* 關鍵：設定一個深色底色，即使圖片還沒跑出來也不會是白邊 */
             margin: 0;
             padding: 0;
             overflow-x: hidden;
             min-height: 100vh;
+            min-height: -webkit-fill-available; /* 解決 iOS 瀏覽器高度計算問題 */
+        }
+        
+        /* 額外補丁：確保 HTML 層級也是滿版 */
+        html {
+            height: -webkit-fill-available;
+            background-color: #1a1a1a; 
         }
         
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
