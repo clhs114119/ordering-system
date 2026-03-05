@@ -7,6 +7,23 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* =========================================
+           0. 全域光線變數設定 (終極解法)
+           ========================================= */
+        :root {
+            /* 預設直向光線 (95deg，水平光感) */
+            --glass-light: linear-gradient(95deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.4) 15%, rgba(255, 255, 255, 0) 45%, rgba(0, 0, 0, 0) 80%, rgba(0, 0, 0, 0.15) 92%, rgba(255, 255, 255, 0.3) 100%);
+            --card-light: linear-gradient(95deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 40%);
+        }
+        
+        @media (orientation: landscape) {
+            :root {
+                /* 橫向光線強制切換 (225deg，右上 45 度射入) */
+                --glass-light: linear-gradient(225deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.4) 15%, rgba(255, 255, 255, 0.1) 40%, rgba(255, 255, 255, 0) 60%, rgba(255, 255, 255, 0.2) 100%);
+                --card-light: linear-gradient(225deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 50%);
+            }
+        }
+        
+        /* =========================================
            1. 基礎 HTML 與 環境設置
            ========================================= */
         html {
@@ -24,7 +41,7 @@
             min-height: 100vh;
             min-height: -webkit-fill-available; 
             
-            /* --- 預設背景：直向 (Portrait) --- */
+            /* 預設背景：直向 (Portrait) */
             background-image: url('./background%20image/d7280e77f44318b33151336fd901a472.jpeg'); 
             background-size: cover;
             background-position: center center;
@@ -56,7 +73,7 @@
         /* =========================================
            2. UI 核心元件：漢堡選單與按鈕
            ========================================= */
-        /* --- 漢堡選單：確保尺寸固定與精準熱區 --- */
+        /* 漢堡選單：確保尺寸固定與精準熱區 */
         .menu-btn-large { 
             position: relative; 
             z-index: 9999 !important; 
@@ -94,7 +111,7 @@
             opacity: 0.7; 
         }
         
-        /* --- 取消按鈕視覺優化 --- */
+        /* 取消按鈕視覺優化 */
         #cancel-orders-btn {
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
             backdrop-filter: blur(5px);
@@ -113,16 +130,10 @@
             z-index: 1500; 
         }
         
-        /* 確保內部內容在玻璃背景層之上 */
-        .glass-container > *, .card-bg > *, .header-glass > * {
-            position: relative;
-            z-index: 30;
-        }
-        
         /* =========================================
-           4. 水晶玻璃質感 (預設直向光源：95deg)
+           4. 水晶玻璃質感 (套用 CSS 變數)
            ========================================= */
-        /* --- 大容器核心效果 --- */
+        /* 大容器核心效果 */
         .glass-container {
             position: relative;
             background: radial-gradient(circle at 25% 45%, rgba(255, 255, 255, 0) 85%, rgba(255, 255, 255, 0.05) 100%) !important;
@@ -138,22 +149,14 @@
             z-index: 10;
         }
         
-        /* 大容器邊緣高光層 (預設 95deg 水平光) */
+        /* 大容器邊緣高光層 (動態讀取變數) */
         .glass-container::before {
             content: "";
             position: absolute;
             inset: 0;
             border-radius: inherit;
             padding: 2.5px;
-            background: linear-gradient(
-                95deg, 
-                rgba(255, 255, 255, 0.95) 0%, 
-                rgba(255, 255, 255, 0.4) 15%, 
-                rgba(255, 255, 255, 0) 45%, 
-                rgba(0, 0, 0, 0) 80%,
-                rgba(0, 0, 0, 0.15) 92%,
-                rgba(255, 255, 255, 0.3) 100%
-            );
+            background: var(--glass-light) !important; /* 原生變數切換，絕對生效 */
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor;
             mask-composite: exclude;
@@ -183,14 +186,14 @@
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), inset 4px 1px 6px -1px rgba(255, 255, 255, 0.5);
         }
         
-        /* 小型元件高亮邊框 (預設 95deg) */
+        /* 小型元件高亮邊框 (動態讀取變數) */
         .card-bg::before, input::before, select::before {
             content: "";
             position: absolute;
             inset: 0;
             border-radius: inherit;
             padding: 1.5px; 
-            background: linear-gradient(95deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 40%);
+            background: var(--card-light) !important; /* 原生變數切換，絕對生效 */
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor;
             mask-composite: exclude;
@@ -198,35 +201,19 @@
             z-index: 5;
         }
         
+        /* 確保內部內容在玻璃背景層之上 */
+        .glass-container > *, .card-bg > *, .header-glass > * {
+            position: relative;
+            z-index: 30;
+        }
+        
         /* =========================================
-           5. 響應式佈局：橫向模式 (Landscape)
-           !!! 注意：必須放在下方以確保覆蓋 !!!
+           5. 響應式佈局：橫向模式背景圖替換
            ========================================= */
         @media (orientation: landscape) {
-            /* 1. 切換橫向背景圖 */
             body {
+                /* 注意：變數切換已在上方 :root 完成，這裡只負責換背景圖 */
                 background-image: url('./background%20image/XsnP8vwC8AY1xMKJgRYqbA_RTy6BIExoDexX-xC8Oag.jpeg') !important; 
-            }
-        
-            /* 2. 橫向大容器光源校正：右上 45 度 (225deg) */
-            .glass-container::before {
-                background: linear-gradient(
-                    225deg, 
-                    rgba(255, 255, 255, 0.95) 0%, 
-                    rgba(255, 255, 255, 0.4) 15%, 
-                    rgba(255, 255, 255, 0.1) 40%, 
-                    rgba(255, 255, 255, 0) 60%, 
-                    rgba(255, 255, 255, 0.2) 100%
-                ) !important;
-            }
-        
-            /* 3. 橫向小型元件同步切換光源 (225deg) */
-            .card-bg::before, input::before, select::before {
-                background: linear-gradient(
-                    225deg, 
-                    rgba(255,255,255,0.8) 0%, 
-                    rgba(255,255,255,0) 50%
-                ) !important;
             }
         }
         
