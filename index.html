@@ -6,29 +6,64 @@
     <title>119定餐系統 V3.5.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        /* --- 基礎 HTML 與 環境設置 --- */
+        html {
+            /* 修正 iOS 底部空白並設定載入底色 */
+            height: -webkit-fill-available;
+            background-color: #1a1a1a; 
+            margin: 0;
+            padding: 0;
+        }
+        
         body {
-            /* 使用相對路徑開啟背景圖 */
-            background-image: url('./background%20image/d7280e77f44318b33151336fd901a472.jpeg'); 
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            min-height: 100vh;
+            min-height: -webkit-fill-available; 
             
-            /* 確保滿版與修正底部白邊問題 */
+            /* --- 預設背景：直向 --- */
+            background-image: url('./background%20image/d7280e77f44318b33151336fd901a472.jpeg'); 
             background-size: cover;
             background-position: center center;
             background-attachment: fixed;
             background-repeat: no-repeat;
-            background-color: #1a1a1a; /* 圖片載入前的底色 */
-            margin: 0;
-            padding: 0;
-            min-height: 100vh;
-            min-height: -webkit-fill-available;
+            background-color: #1a1a1a;
+            
+            /* 字體優化 */
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
         
-        /* 額外補丁：確保 HTML 層級也是滿版 */
-        html {
-            height: -webkit-fill-available;
-            background-color: #1a1a1a; 
+        /* --- 響應式背景：橫向 (電腦/平板/手機橫放) --- */
+        @media (orientation: landscape) {
+            body {
+                /* 注意：請確認檔案副檔名真的是大寫 .JPG */
+                background-image: url('./background%20image/NWurkKNxeGCumG1g1aVeE2NDLxXq9uuEAlWZFy9JPC4.JPG'); 
+            }
         }
         
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        /* --- 背景防斷層補丁 --- */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-image: inherit; /* 自動跟隨 body 的直/橫向圖片切換 */
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            z-index: -10; 
+            pointer-events: none;
+        }
+        
+        /* --- 捲軸樣式優化 --- */
+        .custom-scrollbar::-webkit-scrollbar { 
+            width: 4px; 
+        }
         .custom-scrollbar::-webkit-scrollbar-thumb { 
             background: rgba(255, 255, 255, 0.2); 
             border-radius: 10px; 
