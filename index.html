@@ -6,7 +6,9 @@
     <title>119定餐系統 V3.5.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* --- 1. 基礎 HTML 與 環境設置 --- */
+        /* =========================================
+           1. 基礎 HTML 與 環境設置
+           ========================================= */
         html {
             /* 修正 iOS 底部空白並設定載入底色 */
             height: -webkit-fill-available;
@@ -35,7 +37,7 @@
             -moz-osx-font-smoothing: grayscale;
         }
         
-        /* --- 2. 背景防斷層補丁 (確保背景 100% 覆蓋) --- */
+        /* --- 背景防斷層終極補丁 (墊在最底層) --- */
         body::before {
             content: "";
             position: fixed;
@@ -43,7 +45,7 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            background-image: inherit; /* 自動跟隨 body 的背景圖切換 */
+            background-image: inherit; /* 自動跟隨 body 切換背景圖 */
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
@@ -51,13 +53,16 @@
             pointer-events: none;
         }
         
-        /* --- 3. 漢堡選單：大尺寸與精準熱區 --- */
+        /* =========================================
+           2. UI 核心元件：漢堡選單與按鈕
+           ========================================= */
+        /* --- 漢堡選單：確保尺寸固定與精準熱區 --- */
         .menu-btn-large { 
             position: relative; 
             z-index: 9999 !important; 
             width: 64px !important;        
             height: 64px !important;       
-            font-size: 2.8rem !important; /* 確保 ≡ 夠大 */
+            font-size: 2.8rem !important; 
             line-height: 1 !important;     
             display: inline-flex !important; 
             align-items: center !important;    
@@ -68,10 +73,10 @@
             outline: none;
             pointer-events: auto !important;
             vertical-align: middle;
-            transform: none !important; /* 禁止任何位移，防止點擊熱區偏移 */
+            transform: none !important; /* 禁止位移，防止點擊偏移 */
         }
         
-        /* 點擊熱區強化層 */
+        /* 點擊熱區強化層 (隱形正方形) */
         .menu-btn-large::before {
             content: "";
             position: absolute;
@@ -89,7 +94,16 @@
             opacity: 0.7; 
         }
         
-        /* --- 4. 側邊選單 --- */
+        /* --- 取消按鈕視覺優化 --- */
+        #cancel-orders-btn {
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            letter-spacing: 0.5px;
+        }
+        
+        /* =========================================
+           3. 側邊選單與層級控制
+           ========================================= */
         #side-menu { 
             transition: transform 0.3s ease-in-out; 
             display: flex; 
@@ -99,13 +113,23 @@
             z-index: 1500; 
         }
         
-        /* --- 5. 水晶玻璃核心效果 (預設直向光源 95deg) --- */
+        /* 確保內部內容在玻璃背景層之上 */
+        .glass-container > *, .card-bg > *, .header-glass > * {
+            position: relative;
+            z-index: 30;
+        }
+        
+        /* =========================================
+           4. 水晶玻璃質感 (預設直向光源：95deg)
+           ========================================= */
+        /* --- 大容器核心效果 --- */
         .glass-container {
             position: relative;
             background: radial-gradient(circle at 25% 45%, rgba(255, 255, 255, 0) 85%, rgba(255, 255, 255, 0.05) 100%) !important;
             backdrop-filter: blur(0.5px) saturate(110%);
             -webkit-backdrop-filter: blur(0.5px) saturate(110%);
             border-radius: 2.5rem;
+            border: none !important;
             box-shadow: 
                 30px 10px 60px -20px rgba(0, 0, 0, 0.4), 
                 inset 12px 2px 15px -2px rgba(255, 255, 255, 0.45), 
@@ -114,7 +138,7 @@
             z-index: 10;
         }
         
-        /* 玻璃邊緣高光層 (預設直向) */
+        /* 大容器邊緣高光層 (預設 95deg 水平光) */
         .glass-container::before {
             content: "";
             position: absolute;
@@ -137,7 +161,7 @@
             z-index: 20; 
         }
         
-        /* --- 6. 小型元件與 Header --- */
+        /* --- 小型元件與 Header --- */
         .header-glass { 
             position: relative;
             background-color: rgba(37, 99, 235, 0.6) !important; 
@@ -159,7 +183,7 @@
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), inset 4px 1px 6px -1px rgba(255, 255, 255, 0.5);
         }
         
-        /* 小型元件高亮邊框 (預設直向) */
+        /* 小型元件高亮邊框 (預設 95deg) */
         .card-bg::before, input::before, select::before {
             content: "";
             position: absolute;
@@ -174,31 +198,41 @@
             z-index: 5;
         }
         
-        /* --- 7. 響應式佈局：橫向模式 (光源修正為右上 45 度) --- */
+        /* =========================================
+           5. 響應式佈局：橫向模式 (Landscape)
+           !!! 注意：必須放在下方以確保覆蓋 !!!
+           ========================================= */
         @media (orientation: landscape) {
+            /* 1. 切換橫向背景圖 */
             body {
-                background-image: url('./background%20image/XsnP8vwC8AY1xMKJgRYqbA_RTy6BIExoDexX-xC8Oag.jpeg'); 
+                background-image: url('./background%20image/XsnP8vwC8AY1xMKJgRYqbA_RTy6BIExoDexX-xC8Oag.jpeg') !important; 
             }
         
-            /* 橫向光源校正：改為 225deg (指向左下) */
+            /* 2. 橫向大容器光源校正：右上 45 度 (225deg) */
             .glass-container::before {
                 background: linear-gradient(
                     225deg, 
                     rgba(255, 255, 255, 0.95) 0%, 
                     rgba(255, 255, 255, 0.4) 15%, 
-                    rgba(255, 255, 255, 0) 45%, 
-                    rgba(0, 0, 0, 0.1) 85%,
+                    rgba(255, 255, 255, 0.1) 40%, 
+                    rgba(255, 255, 255, 0) 60%, 
                     rgba(255, 255, 255, 0.2) 100%
                 ) !important;
             }
         
-            /* 小型元件同步切換光源 */
+            /* 3. 橫向小型元件同步切換光源 (225deg) */
             .card-bg::before, input::before, select::before {
-                background: linear-gradient(225deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 50%) !important;
+                background: linear-gradient(
+                    225deg, 
+                    rgba(255,255,255,0.8) 0%, 
+                    rgba(255,255,255,0) 50%
+                ) !important;
             }
         }
         
-        /* --- 8. 行動端優化 (手機直向) --- */
+        /* =========================================
+           6. 響應式佈局：手機直向微調
+           ========================================= */
         @media (max-width: 640px) and (orientation: portrait) {
             .glass-container {
                 margin: 10px !important;
@@ -207,21 +241,12 @@
             }
         }
         
-        /* --- 9. 功能性按鈕補丁 --- */
-        #cancel-orders-btn {
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(5px);
-            letter-spacing: 0.5px;
+        /* =========================================
+           7. 全域雜項 (捲軸等)
+           ========================================= */
+        .custom-scrollbar::-webkit-scrollbar { 
+            width: 4px; 
         }
-        
-        /* 確保內部內容在所有背景層之上 */
-        .glass-container > *, .card-bg > *, .header-glass > * {
-            position: relative;
-            z-index: 30;
-        }
-        
-        /* 捲軸樣式 */
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { 
             background: rgba(255, 255, 255, 0.2); 
             border-radius: 10px; 
