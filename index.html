@@ -36,24 +36,24 @@
         html[data-orientation="landscape"] {
             /* --- 橫向模式 (Landscape) 光源：右上角 --- */
             
-            /* 邊框高光：明確來自右上 */
+            /* 邊框高光：維持從右上角來的柔和漸層 */
             --glass-border-light: linear-gradient(to bottom left, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.5) 20%, rgba(255, 255, 255, 0.1) 45%, rgba(255, 255, 255, 0) 65%, rgba(255, 255, 255, 0.2) 100%);
             --card-border-light: linear-gradient(to bottom left, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 50%);
             
-            /* 內部玻璃反光：亮點在右上角 */
+            /* 內部玻璃反光：維持在右上角 */
             --glass-inner-bg: radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 70%);
             
-            /* 🎯 終極校正：立體陰影 (光從右上來，影子必往左下走) */
+            /* 🎯 柔化陰影：調低黑色透明度，稍微縮小偏移量，創造柔和漫射感 */
             --glass-shadow: 
-                -30px 30px 60px -10px rgba(0, 0, 0, 0.5),       /* 外陰影：往左 (-30px) 往下 (30px) */
-                inset -15px 15px 20px -5px rgba(255, 255, 255, 0.45), /* 內高光：貼在右上角邊緣 */
-                inset 15px -15px 20px -5px rgba(0, 0, 0, 0.4),  /* 內暗部：積聚在左下角邊緣 */
-                inset -1px 1px 1px rgba(255, 255, 255, 0.4);    /* 邊緣細微反光 */
+                -20px 20px 50px -10px rgba(0, 0, 0, 0.3),       /* 外陰影：稍微收斂距離，透明度從 0.5 降到 0.3 */
+                inset -12px 12px 18px -5px rgba(255, 255, 255, 0.35), /* 內高光：稍微調柔和，避免對比太強 */
+                inset 12px -12px 18px -5px rgba(0, 0, 0, 0.25),  /* 內暗部：透明度從 0.4 降到 0.25，減輕厚重感 */
+                inset -1px 1px 1px rgba(255, 255, 255, 0.3);    /* 邊緣細微反光 */
         
-            /* 小卡片陰影同步往左下 */
+            /* 小卡片陰影同步柔化 */
             --card-shadow: 
-                -15px 15px 20px -5px rgba(0, 0, 0, 0.15), 
-                inset -4px 4px 6px -1px rgba(255, 255, 255, 0.5);
+                -10px 10px 15px -3px rgba(0, 0, 0, 0.1), 
+                inset -3px 3px 5px -1px rgba(255, 255, 255, 0.4);
         
             /* 橫向背景圖 */
             --bg-image: url('./background%20image/XsnP8vwC8AY1xMKJgRYqbA_RTy6BIExoDexX-xC8Oag.jpeg');
