@@ -7,23 +7,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* =========================================
-           0. 全域光線變數設定 (終極解法)
-           ========================================= */
-        :root {
-            /* 預設直向光線 (95deg，水平光感) */
-            --glass-light: linear-gradient(95deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.4) 15%, rgba(255, 255, 255, 0) 45%, rgba(0, 0, 0, 0) 80%, rgba(0, 0, 0, 0.15) 92%, rgba(255, 255, 255, 0.3) 100%);
-            --card-light: linear-gradient(95deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 40%);
-        }
-        
-        @media (orientation: landscape) {
-            :root {
-                /* 橫向光線強制切換 (225deg，右上 45 度射入) */
-                --glass-light: linear-gradient(225deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.4) 15%, rgba(255, 255, 255, 0.1) 40%, rgba(255, 255, 255, 0) 60%, rgba(255, 255, 255, 0.2) 100%);
-                --card-light: linear-gradient(225deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 50%);
-            }
-        }
-        
-        /* =========================================
            1. 基礎 HTML 與 環境設置
            ========================================= */
         html {
@@ -130,10 +113,23 @@
             z-index: 1500; 
         }
         
+        /* 確保內部內容在玻璃背景層之上 */
+        .glass-container > *, .card-bg > *, .header-glass > * {
+            position: relative;
+            z-index: 30;
+        }
+        
         /* =========================================
-           4. 水晶玻璃質感 (套用 CSS 變數)
+           4. 水晶玻璃核心與雙層光影系統
            ========================================= */
-        /* 大容器核心效果 */
+        /* --- 基礎背景設定 --- */
+        .header-glass { 
+            position: relative;
+            background-color: rgba(37, 99, 235, 0.6) !important; 
+            backdrop-filter: blur(5px);
+            z-index: 100;
+        }
+        
         .glass-container {
             position: relative;
             background: radial-gradient(circle at 25% 45%, rgba(255, 255, 255, 0) 85%, rgba(255, 255, 255, 0.05) 100%) !important;
@@ -147,29 +143,6 @@
                 inset -15px -3px 20px -5px rgba(0, 0, 0, 0.25),
                 inset 1px 1px 1px rgba(255, 255, 255, 0.3);
             z-index: 10;
-        }
-        
-        /* 大容器邊緣高光層 (動態讀取變數) */
-        .glass-container::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            border-radius: inherit;
-            padding: 2.5px;
-            background: var(--glass-light) !important; /* 原生變數切換，絕對生效 */
-            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            -webkit-mask-composite: xor;
-            mask-composite: exclude;
-            pointer-events: none !important; 
-            z-index: 20; 
-        }
-        
-        /* --- 小型元件與 Header --- */
-        .header-glass { 
-            position: relative;
-            background-color: rgba(37, 99, 235, 0.6) !important; 
-            backdrop-filter: blur(5px);
-            z-index: 100;
         }
         
         .card-bg, input, select {
@@ -186,34 +159,55 @@
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), inset 4px 1px 6px -1px rgba(255, 255, 255, 0.5);
         }
         
-        /* 小型元件高亮邊框 (動態讀取變數) */
-        .card-bg::before, input::before, select::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            border-radius: inherit;
-            padding: 1.5px; 
-            background: var(--card-light) !important; /* 原生變數切換，絕對生效 */
+        /* --- 雙層圖層共用遮罩設定 --- */
+        /* 🟢 第 1 層：直向光線 (預設顯示) */
+        .glass-container::before, .card-bg::before, input::before, select::before {
+            content: ""; position: absolute; inset: 0; border-radius: inherit; 
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            -webkit-mask-composite: xor;
-            mask-composite: exclude;
-            pointer-events: none;
-            z-index: 5;
+            -webkit-mask-composite: xor; mask-composite: exclude;
+            pointer-events: none !important; z-index: 20; 
+            opacity: 1; /* 預設顯示 */
+            transition: opacity 0.3s ease;
         }
         
-        /* 確保內部內容在玻璃背景層之上 */
-        .glass-container > *, .card-bg > *, .header-glass > * {
-            position: relative;
-            z-index: 30;
+        /* 🔵 第 2 層：橫向光線 (預設隱藏) */
+        .glass-container::after, .card-bg::after, input::after, select::after {
+            content: ""; position: absolute; inset: 0; border-radius: inherit; 
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor; mask-composite: exclude;
+            pointer-events: none !important; z-index: 20; 
+            opacity: 0; /* 預設隱藏 */
+            transition: opacity 0.3s ease;
         }
+        
+        /* --- 分配光線漸層角度 --- */
+        /* 大容器：直向 95deg */
+        .glass-container::before { padding: 2.5px; background: linear-gradient(95deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.4) 15%, rgba(255, 255, 255, 0) 45%, rgba(0, 0, 0, 0) 80%, rgba(0, 0, 0, 0.15) 92%, rgba(255, 255, 255, 0.3) 100%); }
+        /* 大容器：橫向 225deg */
+        .glass-container::after { padding: 2.5px; background: linear-gradient(225deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.4) 15%, rgba(255, 255, 255, 0.1) 40%, rgba(255, 255, 255, 0) 60%, rgba(255, 255, 255, 0.2) 100%); }
+        
+        /* 小元件：直向 95deg */
+        .card-bg::before, input::before, select::before { padding: 1.5px; background: linear-gradient(95deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 40%); }
+        /* 小元件：橫向 225deg */
+        .card-bg::after, input::after, select::after { padding: 1.5px; background: linear-gradient(225deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 50%); }
         
         /* =========================================
-           5. 響應式佈局：橫向模式背景圖替換
+           5. 響應式佈局：橫向模式 (圖層切換開關)
            ========================================= */
         @media (orientation: landscape) {
+            /* 更換橫向背景圖 */
             body {
-                /* 注意：變數切換已在上方 :root 完成，這裡只負責換背景圖 */
                 background-image: url('./background%20image/XsnP8vwC8AY1xMKJgRYqbA_RTy6BIExoDexX-xC8Oag.jpeg') !important; 
+            }
+        
+            /* 關閉直向圖層 (!important 確保絕對覆寫) */
+            .glass-container::before, .card-bg::before, input::before, select::before {
+                opacity: 0 !important;
+            }
+        
+            /* 開啟橫向圖層 (!important 確保絕對覆寫) */
+            .glass-container::after, .card-bg::after, input::after, select::after {
+                opacity: 1 !important;
             }
         }
         
