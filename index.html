@@ -81,36 +81,49 @@
             border-radius: 10px; 
         }
         
-        /* --- 漢堡選單：熱區歸位與層級絕對化 --- */
+        /* --- 漢堡選單：強制固定尺寸與位置 --- */
         .menu-btn-large { 
             position: relative; 
             z-index: 9999 !important; 
-            width: 60px;        
-            height: 60px;       
-            display: inline-flex;
-            align-items: center;    
-            justify-content: center; 
+            /* 強制設定寬高與字體大小，避免被其他樣式覆蓋 */
+            width: 64px !important;        
+            height: 64px !important;       
+            font-size: 2.8rem !important; 
+            
+            margin: 0;
+            padding: 0;
+            line-height: 1 !important;     
+            display: inline-flex !important; 
+            align-items: center !important;    
+            justify-content: center !important; 
+            
             cursor: pointer;
             background: transparent;
             border: none;
             outline: none;
             pointer-events: auto !important;
             vertical-align: middle;
+            /* 這裡維持 transform: none，確保點擊熱區不偏移 */
+            transform: none !important; 
         }
         
+        /* 確保點擊熱區維持 70px，不受視覺尺寸影響 */
         .menu-btn-large::before {
             content: "";
             position: absolute;
             top: 50%;
             left: 50%;
-            width: 70px; 
-            height: 70px;
+            width: 75px; 
+            height: 75px;
             background: transparent;
             transform: translate(-50%, -50%);
             z-index: 10000;
         }
         
-        .menu-btn-large:active { transform: scale(0.9); opacity: 0.7; }
+        .menu-btn-large:active { 
+            transform: scale(0.9) !important; 
+            opacity: 0.7; 
+        }
         
         /* --- 側邊選單 --- */
         #side-menu { 
