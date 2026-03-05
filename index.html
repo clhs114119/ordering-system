@@ -217,7 +217,13 @@
             <h3 class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3">更新日誌</h3>
             <div class="space-y-4 max-h-52 overflow-y-auto custom-scrollbar pr-2 text-[11px] text-gray-600">
                 <div>
-                    <p class="font-bold text-blue-700">V3.5.1 (Current)</p>
+                    <p class="font-bold text-blue-700">V3.5.2 (Current)</p>
+                    <p>• 增加UUID防重放機制</p>
+                    <p>• 密鑰偵測安全性提升</p>
+                    <p>• 修復錯誤並提升穩定性</p>
+                </div>
+                <div>
+                    <p class="font-bold text-gray-700">V3.5.1</p>
                     <p>• 加入橫向背景</p>
                     <p>• 解決光線角度錯誤問題</p>
                     <p>• 修復錯誤並提升穩定性</p>
@@ -406,7 +412,6 @@
         let isMenuUpdated = false;
 
         async function init() {
-            // 確保這裡「不要」寫開啟 loading 的程式碼
             try {
                 const res = await fetch(API_URL);
                 globalData = await res.json();
@@ -414,11 +419,10 @@
             } catch (e) { 
                 alert("連線失敗，請檢查網路後重新整理"); 
             }
-            // 這裡也不需要關閉，因為根本沒開啟
         }
 
         function renderBaseUI() {
-            // 1. 初始化座號選單 (包含訂餐頁面與管理員加值頁面)
+            // 1. 初始化座號選單
             const seatSelects = [document.getElementById('seat-select'), document.getElementById('recharge-seat')];
             seatSelects.forEach(s => {
                 if (!s) return;
@@ -431,12 +435,11 @@
                 });
             });
         
-            // 2. 渲染今日菜單列表 (訂餐介面)
+            // 2. 渲染今日菜單列表
             const menuBox = document.getElementById('menu-list');
             menuBox.innerHTML = "";
             globalData.menu.forEach(item => {
                 const div = document.createElement('div');
-                // 預設樣式：高透玻璃感
                 div.className = "card-bg flex justify-between items-center p-4 border border-white/20 rounded-2xl cursor-pointer hover:bg-white/40 transition-all";
                 div.onclick = () => toggleItem(item, div);
                 div.innerHTML = `
@@ -449,7 +452,6 @@
             // 3. 渲染今日統計表格
             const tableBody = document.getElementById('stats-table-body');
             tableBody.innerHTML = "";
-            // 預設顯示前 15 項餐點統計
             for (let i = 1; i < 16; i++) {
                 const row = globalData.stats[i] || { name: "", qty: 0, total: 0 };
                 const tr = document.createElement('tr');
@@ -461,11 +463,10 @@
                 `;
                 tableBody.appendChild(tr);
             }
-            // 更新統計頁腳總計
             document.getElementById('total-qty').innerText = globalData.stats[16]?.qty || 0;
             document.getElementById('total-sum').innerText = `$ ${globalData.stats[16]?.total || 0}`;
         
-            // 4. 更新系統狀態標籤 (Status Tag) 與 訂餐鎖定邏輯
+            // 4. 更新系統狀態標籤與鎖定邏輯
             const today = new Date().toLocaleDateString('en-CA');
             const tag = document.getElementById('status-tag');
             const orderBtn = document.getElementById('order-submit-btn');
@@ -490,7 +491,7 @@
                 }
             }
         
-            // 5. 渲染管理員頁面的價格修改清單
+            // 5. 渲染管理員價格修改清單
             const adminMenu = document.getElementById('admin-menu-edit');
             if (adminMenu) {
                 adminMenu.innerHTML = "";
@@ -507,8 +508,7 @@
                 });
             }
         
-            // 6. 重點優化：初始化按鈕狀態 (提示請先選擇座號)
-            // 傳入 0 代表目前選餐總額為 0
+            // 6. 初始化按鈕狀態
             checkBalanceStatus(0); 
         }
 
@@ -521,10 +521,8 @@
                 selectedItems.push(item);
                 div.className = "flex justify-between items-center p-4 border border-blue-400 bg-blue-500/40 rounded-2xl cursor-pointer shadow-inner transition-all";
             }
-            // 更新總金額顯示
             const total = selectedItems.reduce((s,i) => s + Number(i.price), 0);
             document.getElementById('total-amount').innerText = `$ ${total}`;
-            // 額外加強：即時檢查餘額並改變送出按鈕狀態
             checkBalanceStatus(total);
         }
 
@@ -533,22 +531,17 @@
             const balance = globalData.balances[s] || 0;
             const displayElement = document.getElementById('balance-val');
         
-            // 更新數值文字
             displayElement.innerText = `$ ${balance}`;
-        
-            // 移除舊的顏色類別，確保重新計算
             displayElement.classList.remove('text-blue-700', 'text-red-500', 'text-yellow-500', 'text-amber-600');
         
-            // 根據餘額判斷顏色邏輯 (已套用您的最新門檻)
             if (balance < 75) {
-                displayElement.classList.add('text-red-500'); // 少於 75 元：紅色
+                displayElement.classList.add('text-red-500'); 
             } else if (balance < 150) {
-                displayElement.classList.add('text-amber-600'); // 少於 150 元：琥珀色 (加深黃)
+                displayElement.classList.add('text-amber-600'); 
             } else {
-                displayElement.classList.add('text-blue-700'); // 大於等於 150 元：藍色
+                displayElement.classList.add('text-blue-700'); 
             }
         
-            // 重點：切換座號時，立即檢查目前的選餐總額是否超過新座號的餘額
             const total = selectedItems.reduce((sum, i) => sum + Number(i.price), 0);
             checkBalanceStatus(total); 
         }
@@ -560,7 +553,6 @@
             const s = document.getElementById('seat-select').value;
             const isUnlocked = globalData.emergencyUnlocked === true;
         
-            // 優先權 1：檢查是否因為菜單未更新而被鎖定
             if (!isMenuUpdated && !isUnlocked) {
                 submitBtn.classList.add('opacity-50', 'cursor-not-allowed', 'grayscale');
                 submitBtn.disabled = true;
@@ -568,7 +560,6 @@
                 return;
             }
         
-            // 優先權 2：檢查座號是否選擇
             if (!s) {
                 submitBtn.classList.add('opacity-50', 'cursor-not-allowed', 'grayscale');
                 submitBtn.disabled = true;
@@ -576,14 +567,12 @@
                 return;
             }
         
-            // 優先權 3：檢查餘額
             const balance = globalData.balances[s] || 0;
             if (total > balance) {
                 submitBtn.classList.add('opacity-50', 'cursor-not-allowed', 'grayscale');
                 submitBtn.disabled = true;
                 submitBtn.innerHTML = `<span>餘額不足 (還差 $${total - balance})</span>`;
             } else {
-                // 全部通過：恢復正常
                 submitBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'grayscale');
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = `<span>確認送出訂單</span>`;
@@ -606,41 +595,46 @@
             }
         }
 
+        // 🛡️ 新增：UUID 生成函數 (防重放攻擊核心)
+        function generateUUID() {
+            if (crypto && crypto.randomUUID) {
+                return crypto.randomUUID();
+            }
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+
         async function sendOrder() {
-            // 1. 權限檢查：檢查是否鎖定 (除非管理員臨時解鎖)
             if (!isMenuUpdated && !globalData.emergencyUnlocked) {
                 return alert("目前鎖定訂餐！(菜單未更新或已過訂餐時間)");
             }
             
-            // 2. 基本欄位檢查
             const seat = document.getElementById('seat-select').value;
             if (!seat) return alert("請先選擇座號！");
             if (selectedItems.length === 0) return alert("請至少選擇一項餐點！");
         
-            // 3. 金額與餘額計算
             const totalCost = selectedItems.reduce((sum, item) => sum + Number(item.price), 0);
             const currentBalance = globalData.balances[seat] || 0;
         
-            // 4. 餘額不足攔截
             if (currentBalance < totalCost) {
                 alert(`❌ 餘額不足，無法訂餐！\n----------------\n座號：${seat} 號\n目前餘額：$ ${currentBalance}\n訂單總額：$ ${totalCost}\n----------------\n請找管理員加值後再試。`);
                 return; 
             }
         
-            // 5. 整理餐點清單文字 (例如: 雞排、珍奶)
             const itemNames = selectedItems.map(i => i.name).join('、');
-            
-            // 6. 彈出最終核對資訊
             const confirmMsg = `核對訂購資訊：\n----------------\n座號：${seat} 號\n餐點：${itemNames}\n總計金額：$ ${totalCost}\n----------------\n確認要送出訂單嗎？`;
         
             if (!confirm(confirmMsg)) return;     
             
-            // 7. 正式發送 API
+            // 🛡️ 更新：送出訂單時，自動夾帶一組 UUID
             callAPI({ 
                 action: 'order', 
                 seat: seat, 
                 items: selectedItems,
-                total: totalCost // 額外傳送總額給後端記錄或核對
+                total: totalCost,
+                uuid: generateUUID() 
             });
         }
 
@@ -651,40 +645,35 @@
         }
         
         async function refreshStats() {
-            // 顯示處理中畫面
             document.getElementById('loading-screen').classList.remove('hidden');
             try {
                 const res = await fetch(API_URL);
                 globalData = await res.json();
-                // 重新渲染 UI
                 renderBaseUI();
-                // 如果目前在統計頁，確保統計頁內容被更新
-                // (renderBaseUI 已經包含統計表格更新邏輯)
-                console.log("資料已更新");
             } catch (e) {
                 alert("重新整理失敗");
             } finally {
-                // 隱藏處理中畫面
                 document.getElementById('loading-screen').classList.add('hidden');
             }
         }
 
+        // 🛡️ 更新：管理員登入邏輯調整 (不再依賴前端外洩的密鑰)
         function unlockAdmin() {
             const inputField = document.getElementById('admin-key-input');
-            const inputKey = inputField.value.trim(); // 修正：自動去除前後空白，避免複製時多點到空格
+            const inputKey = inputField.value.trim(); 
         
-            if (inputKey === globalData.adminKey) {
-                adminKey = globalData.adminKey;
-                document.getElementById('admin-login').classList.add('hidden');
-                document.getElementById('admin-content').classList.remove('hidden');
-                
-                // 增加一個成功的小提示（選配）
-                console.log("Admin Access Granted");
-            } else {
-                alert("密鑰錯誤，請重新輸入");
-                inputField.value = ""; // 錯誤時清空欄位
-                inputField.focus();    // 重新聚焦方便再次輸入
+            if (!inputKey) {
+                alert("請輸入密鑰！");
+                inputField.focus();
+                return;
             }
+            
+            // 先暫存使用者輸入的密鑰，並直接開放介面
+            // 如果密碼是錯的，等下按任何管理按鈕時，後端都會直接回傳「權限不足」
+            adminKey = inputKey;
+            document.getElementById('admin-login').classList.add('hidden');
+            document.getElementById('admin-content').classList.remove('hidden');
+            inputField.value = ""; // 清空欄位
         }
 
         async function triggerEmergencyUnlock() {
@@ -713,13 +702,19 @@
             try {
                 const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
                 const resultText = await res.text();
-                // 如果是訂餐動作且成功，彈出更詳細的完成視窗
+                
                 if (payload.action === 'order' && resultText.includes("成功")) {
                     const seat = payload.seat;
                     const itemNames = payload.items.map(i => i.name).join('、');
                     alert(`✅ 訂餐成功！\n座號：${seat} 號\n已記錄餐點：${itemNames}`);
                 } else {
                     alert(resultText);
+                    // 🛡️ 如果是因為密碼錯誤被擋下，把畫面退回登入頁面
+                    if (resultText.includes("密鑰錯誤")) {
+                        document.getElementById('admin-login').classList.remove('hidden');
+                        document.getElementById('admin-content').classList.add('hidden');
+                        adminKey = "";
+                    }
                 }
                 location.reload();
             } catch (e) { 
@@ -744,22 +739,12 @@
 
         init();
         
-        // 建立一個函數來偵測並更新螢幕方向
         function updateOrientation() {
-            // 判斷寬度是否大於高度 (橫向)
             const isLandscape = window.innerWidth > window.innerHeight;
-            
-            // 在 <html> 標籤強制寫入 data-orientation 屬性
-            document.documentElement.setAttribute(
-                'data-orientation', 
-                isLandscape ? 'landscape' : 'portrait'
-            );
+            document.documentElement.setAttribute('data-orientation', isLandscape ? 'landscape' : 'portrait');
         }
     
-        // 1. 網頁剛載入時，立刻執行一次判斷
         updateOrientation();
-    
-        // 2. 當使用者旋轉螢幕或改變視窗大小時，重新執行判斷
         window.addEventListener('resize', updateOrientation);
         window.addEventListener('orientationchange', updateOrientation);
     </script>
