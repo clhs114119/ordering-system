@@ -7,20 +7,52 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* =========================================
-           0. 全域光線變數 (由 JS 屬性強制驅動)
+           0. 全域立體光源變數 (邊框、反光、陰影三合一)
            ========================================= */
         :root {
-            /* 預設直向光線 (95deg) */
-            --glass-light: linear-gradient(95deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.4) 15%, rgba(255, 255, 255, 0) 45%, rgba(0, 0, 0, 0) 80%, rgba(0, 0, 0, 0.15) 92%, rgba(255, 255, 255, 0.3) 100%);
-            --card-light: linear-gradient(95deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 40%);
+            /* --- 直向模式 (Portrait) 預設光源：左上/左側 --- */
+            
+            /* 邊框高光 */
+            --glass-border-light: linear-gradient(95deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.4) 15%, rgba(255, 255, 255, 0) 45%, rgba(0, 0, 0, 0) 80%, rgba(0, 0, 0, 0.15) 92%, rgba(255, 255, 255, 0.3) 100%);
+            --card-border-light: linear-gradient(95deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 40%);
+            
+            /* 內部玻璃反光 (亮點在偏左) */
+            --glass-inner-bg: radial-gradient(circle at 25% 45%, rgba(255, 255, 255, 0) 85%, rgba(255, 255, 255, 0.05) 100%);
+            
+            /* 立體陰影 (影子往右下掉，高光在左上) */
+            --glass-shadow: 
+                30px 10px 60px -20px rgba(0, 0, 0, 0.4), 
+                inset 12px 2px 15px -2px rgba(255, 255, 255, 0.45), 
+                inset -15px -3px 20px -5px rgba(0, 0, 0, 0.25),
+                inset 1px 1px 1px rgba(255, 255, 255, 0.3);
+        
+            --card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), inset 4px 1px 6px -1px rgba(255, 255, 255, 0.5);
+        
+            /* 背景圖 */
             --bg-image: url('./background%20image/d7280e77f44318b33151336fd901a472.jpeg');
         }
         
-        /* 當 JS 判定為橫向時，強制切換變數 */
+        /* 當 JS 判定為橫向時，強制切換所有光源參數 */
         html[data-orientation="landscape"] {
-            /* 橫向光線 (315deg) */
-            --glass-light: linear-gradient(315deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.4) 15%, rgba(255, 255, 255, 0.1) 40%, rgba(255, 255, 255, 0) 60%, rgba(255, 255, 255, 0.2) 100%);
-            --card-light: linear-gradient(315deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 50%);
+            /* --- 橫向模式 (Landscape) 光源：右上角 --- */
+            
+            /* 邊框高光 (改用 to bottom left 適應螢幕比例，光源明確來自右上) */
+            --glass-border-light: linear-gradient(to bottom left, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.5) 20%, rgba(255, 255, 255, 0.1) 45%, rgba(255, 255, 255, 0) 65%, rgba(255, 255, 255, 0.2) 100%);
+            --card-border-light: linear-gradient(to bottom left, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 50%);
+            
+            /* 內部玻璃反光 (亮點移到右上角 80% 20% 的位置) */
+            --glass-inner-bg: radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 70%);
+            
+            /* 立體陰影 (影子往「左下」掉，內部白光打在「右上」) */
+            --glass-shadow: 
+                -30px 20px 60px -15px rgba(0, 0, 0, 0.5),      /* 外部陰影往左下 */
+                inset -12px 4px 15px -2px rgba(255, 255, 255, 0.45),  /* 內部邊緣高光在右上 */
+                inset 15px -5px 20px -5px rgba(0, 0, 0, 0.3),  /* 內部暗部在左下 */
+                inset -1px 1px 1px rgba(255, 255, 255, 0.4);   /* 頂部細微反光 */
+        
+            --card-shadow: -10px 10px 15px -3px rgba(0, 0, 0, 0.1), inset -4px 1px 6px -1px rgba(255, 255, 255, 0.5);
+        
+            /* 背景圖 */
             --bg-image: url('./background%20image/XsnP8vwC8AY1xMKJgRYqbA_RTy6BIExoDexX-xC8Oag.jpeg');
         }
         
@@ -39,7 +71,7 @@
             min-height: 100vh;
             min-height: -webkit-fill-available; 
             
-            /* 背景圖改由變數控制 */
+            /* 背景圖改由變數控制，切換更加平滑 */
             background-image: var(--bg-image); 
             background-size: cover;
             background-position: center center;
@@ -51,6 +83,7 @@
             -webkit-font-smoothing: antialiased;
         }
         
+        /* 背景防斷層終極補丁 */
         body::before {
             content: ""; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background-image: inherit; background-size: cover; background-position: center;
@@ -89,34 +122,40 @@
             transition: transform 0.3s ease-in-out; display: flex; flex-direction: column;
             backdrop-filter: blur(15px); background-color: rgba(255, 255, 255, 0.5); z-index: 1500; 
         }
+        
         .glass-container > *, .card-bg > *, .header-glass > * { position: relative; z-index: 30; }
         
         /* =========================================
-           4. 水晶玻璃核心 (套用 JS 驅動變數)
+           4. 水晶玻璃核心 (全面套用變數)
            ========================================= */
         .header-glass { 
             position: relative; background-color: rgba(37, 99, 235, 0.6) !important; 
             backdrop-filter: blur(5px); z-index: 100;
         }
         
+        /* 大容器核心效果 */
         .glass-container {
             position: relative;
-            background: radial-gradient(circle at 25% 45%, rgba(255, 255, 255, 0) 85%, rgba(255, 255, 255, 0.05) 100%) !important;
-            backdrop-filter: blur(0.5px) saturate(110%); -webkit-backdrop-filter: blur(0.5px) saturate(110%);
-            border-radius: 2.5rem; border: none !important;
-            box-shadow: 30px 10px 60px -20px rgba(0, 0, 0, 0.4), inset 12px 2px 15px -2px rgba(255, 255, 255, 0.45), inset -15px -3px 20px -5px rgba(0, 0, 0, 0.25), inset 1px 1px 1px rgba(255, 255, 255, 0.3);
+            background: var(--glass-inner-bg) !important; /* 動態內部反光 */
+            backdrop-filter: blur(0.5px) saturate(110%); 
+            -webkit-backdrop-filter: blur(0.5px) saturate(110%);
+            border-radius: 2.5rem; 
+            border: none !important;
+            box-shadow: var(--glass-shadow) !important; /* 動態立體陰影 */
             z-index: 10;
+            transition: background 0.4s ease, box-shadow 0.4s ease; /* 增加轉向時的滑順過渡 */
         }
         
         /* 光線遮罩層：直接讀取變數 */
         .glass-container::before {
             content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 2.5px;
-            background: var(--glass-light) !important; /* 隨 JS 屬性變更 */
+            background: var(--glass-border-light) !important; 
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor; mask-composite: exclude;
             pointer-events: none !important; z-index: 20; 
         }
         
+        /* 小型卡片與輸入框 */
         .card-bg, input, select {
             position: relative; border: none !important;
             backdrop-filter: blur(8px) saturate(120%); -webkit-backdrop-filter: blur(8px) saturate(120%); z-index: 1;
@@ -124,12 +163,13 @@
         
         .card-bg { 
             background-color: rgba(255, 255, 255, 0.45) !important; border-radius: 1.5rem;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), inset 4px 1px 6px -1px rgba(255, 255, 255, 0.5);
+            box-shadow: var(--card-shadow) !important; /* 動態小陰影 */
+            transition: box-shadow 0.4s ease;
         }
         
         .card-bg::before, input::before, select::before {
             content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1.5px; 
-            background: var(--card-light) !important; /* 隨 JS 屬性變更 */
+            background: var(--card-border-light) !important; 
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor; mask-composite: exclude;
             pointer-events: none; z-index: 5;
@@ -149,6 +189,7 @@
            ========================================= */
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 10px; }
+        
     </style>
 </head>
 <body class="min-h-screen flex justify-center font-sans overflow-x-hidden">
