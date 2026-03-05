@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>119定餐系統 V3.5.1</title>
+    <title>119定餐系統 V3.5.2</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* =========================================
@@ -203,7 +203,7 @@
     <div id="side-menu" class="fixed top-0 left-0 h-full w-64 z-50 shadow-2xl transform -translate-x-full">
         <div class="p-8 header-glass text-white shrink-0">
             <h2 class="text-xl font-black italic">119 訂餐系統</h2>
-            <p class="text-[10px] opacity-80 tracking-widest">V3.5.1 正式版</p>
+            <p class="text-[10px] opacity-80 tracking-widest">V3.5.2 正式版</p>
         </div>
         
         <nav class="p-4 space-y-2 flex-grow">
@@ -657,8 +657,8 @@
             }
         }
 
-        // 🛡️ 更新：管理員登入邏輯調整 (不再依賴前端外洩的密鑰)
-        function unlockAdmin() {
+        // 🛡️ 修正：先向後端驗證密碼，正確才顯示管理員介面
+        async function unlockAdmin() {
             const inputField = document.getElementById('admin-key-input');
             const inputKey = inputField.value.trim(); 
         
@@ -668,12 +668,35 @@
                 return;
             }
             
-            // 先暫存使用者輸入的密鑰，並直接開放介面
-            // 如果密碼是錯的，等下按任何管理按鈕時，後端都會直接回傳「權限不足」
-            adminKey = inputKey;
-            document.getElementById('admin-login').classList.add('hidden');
-            document.getElementById('admin-content').classList.remove('hidden');
-            inputField.value = ""; // 清空欄位
+            // 顯示處理中畫面
+            document.getElementById('loading-screen').classList.remove('hidden');
+
+            try {
+                // 發送請求問後端密碼對不對
+                const res = await fetch(API_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify({ action: 'verifyKey', key: inputKey }) 
+                });
+                const resultText = await res.text();
+
+                if (resultText === "驗證成功") {
+                    // 密碼正確：記錄密鑰，並解鎖介面
+                    adminKey = inputKey;
+                    document.getElementById('admin-login').classList.add('hidden');
+                    document.getElementById('admin-content').classList.remove('hidden');
+                    inputField.value = ""; // 清空欄位
+                } else {
+                    // 密碼錯誤：彈出警告並停留在登入頁面
+                    alert(resultText); 
+                    inputField.value = "";
+                    inputField.focus();
+                }
+            } catch (e) {
+                alert("連線異常，請檢查網路");
+            } finally {
+                // 隱藏處理中畫面
+                document.getElementById('loading-screen').classList.add('hidden');
+            }
         }
 
         async function triggerEmergencyUnlock() {
