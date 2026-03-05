@@ -36,23 +36,26 @@
         html[data-orientation="landscape"] {
             /* --- 橫向模式 (Landscape) 光源：右上角 --- */
             
-            /* 邊框高光 (改用 to bottom left 適應螢幕比例，光源明確來自右上) */
+            /* 邊框高光：明確來自右上 */
             --glass-border-light: linear-gradient(to bottom left, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.5) 20%, rgba(255, 255, 255, 0.1) 45%, rgba(255, 255, 255, 0) 65%, rgba(255, 255, 255, 0.2) 100%);
             --card-border-light: linear-gradient(to bottom left, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 50%);
             
-            /* 內部玻璃反光 (亮點移到右上角 80% 20% 的位置) */
+            /* 內部玻璃反光：亮點在右上角 */
             --glass-inner-bg: radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 70%);
             
-            /* 立體陰影 (影子往「左下」掉，內部白光打在「右上」) */
+            /* 🎯 終極校正：立體陰影 (光從右上來，影子必往左下走) */
             --glass-shadow: 
-                -30px 20px 60px -15px rgba(0, 0, 0, 0.5),      /* 外部陰影往左下 */
-                inset -12px 4px 15px -2px rgba(255, 255, 255, 0.45),  /* 內部邊緣高光在右上 */
-                inset 15px -5px 20px -5px rgba(0, 0, 0, 0.3),  /* 內部暗部在左下 */
-                inset -1px 1px 1px rgba(255, 255, 255, 0.4);   /* 頂部細微反光 */
+                -30px 30px 60px -10px rgba(0, 0, 0, 0.5),       /* 外陰影：往左 (-30px) 往下 (30px) */
+                inset -15px 15px 20px -5px rgba(255, 255, 255, 0.45), /* 內高光：貼在右上角邊緣 */
+                inset 15px -15px 20px -5px rgba(0, 0, 0, 0.4),  /* 內暗部：積聚在左下角邊緣 */
+                inset -1px 1px 1px rgba(255, 255, 255, 0.4);    /* 邊緣細微反光 */
         
-            --card-shadow: -10px 10px 15px -3px rgba(0, 0, 0, 0.1), inset -4px 1px 6px -1px rgba(255, 255, 255, 0.5);
+            /* 小卡片陰影同步往左下 */
+            --card-shadow: 
+                -15px 15px 20px -5px rgba(0, 0, 0, 0.15), 
+                inset -4px 4px 6px -1px rgba(255, 255, 255, 0.5);
         
-            /* 背景圖 */
+            /* 橫向背景圖 */
             --bg-image: url('./background%20image/XsnP8vwC8AY1xMKJgRYqbA_RTy6BIExoDexX-xC8Oag.jpeg');
         }
         
