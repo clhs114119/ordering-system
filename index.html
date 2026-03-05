@@ -34,7 +34,7 @@
         
         /* 當 JS 判定為橫向時，強制切換所有光源參數 */
         html[data-orientation="landscape"] {
-            /* --- 橫向模式 (Landscape) 光源：右上角 --- */
+            /* --- 橫向模式 (Landscape) 光源：極遠右上角 --- */
             
             /* 邊框高光：維持從右上角來的柔和漸層 */
             --glass-border-light: linear-gradient(to bottom left, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.5) 20%, rgba(255, 255, 255, 0.1) 45%, rgba(255, 255, 255, 0) 65%, rgba(255, 255, 255, 0.2) 100%);
@@ -43,17 +43,17 @@
             /* 內部玻璃反光：維持在右上角 */
             --glass-inner-bg: radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 70%);
             
-            /* 🎯 柔化陰影：調低黑色透明度，稍微縮小偏移量，創造柔和漫射感 */
+            /* 🎯 遠距光源校正：加大向下偏移，避開左上角，將陰影推至左中與左下 */
             --glass-shadow: 
-                -25px 25px 50px -10px rgba(0, 0, 0, 0.35),       /* 外陰影：稍微收斂距離，透明度從 0.5 降到 0.35 */
-                inset -12px 12px 18px -5px rgba(255, 255, 255, 0.35), /* 內高光：稍微調柔和，避免對比太強 */
-                inset 12px -12px 18px -5px rgba(0, 0, 0, 0.3),  /* 內暗部：透明度從 0.4 降到 0.3，減輕厚重感 */
-                inset -1px 1px 1px rgba(255, 255, 255, 0.3);    /* 邊緣細微反光 */
+                -15px 40px 55px -10px rgba(0, 0, 0, 0.35),       /* 外陰影：向左推少一點(-15)，向下推多一點(40)，徹底離開左上角 */
+                inset -10px 18px 20px -5px rgba(255, 255, 255, 0.35), /* 內高光：高光集中在右上邊緣 */
+                inset 8px -20px 25px -5px rgba(0, 0, 0, 0.3),    /* 內暗部：向左少一點(8)，向下多一點(-20)，讓暗部積聚在底部與左下 */
+                inset -1px 1px 1px rgba(255, 255, 255, 0.3);     /* 邊緣細微反光 */
         
-            /* 小卡片陰影同步柔化 */
+            /* 小卡片陰影同步向下推移 */
             --card-shadow: 
-                -10px 10px 15px -3px rgba(0, 0, 0, 0.1), 
-                inset -3px 3px 5px -1px rgba(255, 255, 255, 0.4);
+                -5px 18px 20px -5px rgba(0, 0, 0, 0.1), 
+                inset -2px 5px 6px -1px rgba(255, 255, 255, 0.4);
         
             /* 橫向背景圖 */
             --bg-image: url('./background%20image/XsnP8vwC8AY1xMKJgRYqbA_RTy6BIExoDexX-xC8Oag.jpeg');
