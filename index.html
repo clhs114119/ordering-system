@@ -7,25 +7,40 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* =========================================
+           0. 全域光線變數 (由 JS 屬性強制驅動)
+           ========================================= */
+        :root {
+            /* 預設直向光線 (95deg) */
+            --glass-light: linear-gradient(95deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.4) 15%, rgba(255, 255, 255, 0) 45%, rgba(0, 0, 0, 0) 80%, rgba(0, 0, 0, 0.15) 92%, rgba(255, 255, 255, 0.3) 100%);
+            --card-light: linear-gradient(95deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 40%);
+            --bg-image: url('./background%20image/d7280e77f44318b33151336fd901a472.jpeg');
+        }
+        
+        /* 當 JS 判定為橫向時，強制切換變數 */
+        html[data-orientation="landscape"] {
+            /* 橫向光線 (225deg) */
+            --glass-light: linear-gradient(225deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.4) 15%, rgba(255, 255, 255, 0.1) 40%, rgba(255, 255, 255, 0) 60%, rgba(255, 255, 255, 0.2) 100%);
+            --card-light: linear-gradient(225deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 50%);
+            --bg-image: url('./background%20image/XsnP8vwC8AY1xMKJgRYqbA_RTy6BIExoDexX-xC8Oag.jpeg');
+        }
+        
+        /* =========================================
            1. 基礎 HTML 與 環境設置
            ========================================= */
         html {
-            /* 修正 iOS 底部空白並設定載入底色 */
             height: -webkit-fill-available;
             background-color: #1a1a1a; 
-            margin: 0;
-            padding: 0;
+            margin: 0; padding: 0;
         }
         
         body {
-            margin: 0;
-            padding: 0;
+            margin: 0; padding: 0;
             overflow-x: hidden;
             min-height: 100vh;
             min-height: -webkit-fill-available; 
             
-            /* 預設背景：直向 (Portrait) */
-            background-image: url('./background%20image/d7280e77f44318b33151336fd901a472.jpeg'); 
+            /* 背景圖改由變數控制 */
+            background-image: var(--bg-image); 
             background-size: cover;
             background-position: center center;
             background-attachment: fixed;
@@ -34,204 +49,106 @@
             
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
         }
         
-        /* --- 背景防斷層終極補丁 (墊在最底層) --- */
         body::before {
-            content: "";
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background-image: inherit; /* 自動跟隨 body 切換背景圖 */
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-            z-index: -10; 
-            pointer-events: none;
+            content: ""; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background-image: inherit; background-size: cover; background-position: center;
+            background-attachment: fixed; z-index: -10; pointer-events: none;
         }
         
         /* =========================================
            2. UI 核心元件：漢堡選單與按鈕
            ========================================= */
-        /* 漢堡選單：確保尺寸固定與精準熱區 */
         .menu-btn-large { 
-            position: relative; 
-            z-index: 9999 !important; 
-            width: 64px !important;        
-            height: 64px !important;       
-            font-size: 2.8rem !important; 
-            line-height: 1 !important;     
-            display: inline-flex !important; 
-            align-items: center !important;    
-            justify-content: center !important; 
-            cursor: pointer;
-            background: transparent;
-            border: none;
-            outline: none;
-            pointer-events: auto !important;
-            vertical-align: middle;
-            transform: none !important; /* 禁止位移，防止點擊偏移 */
+            position: relative; z-index: 9999 !important; 
+            width: 64px !important; height: 64px !important;       
+            font-size: 2.8rem !important; line-height: 1 !important;     
+            display: inline-flex !important; align-items: center !important; justify-content: center !important; 
+            cursor: pointer; background: transparent; border: none; outline: none;
+            pointer-events: auto !important; vertical-align: middle; transform: none !important; 
         }
         
-        /* 點擊熱區強化層 (隱形正方形) */
         .menu-btn-large::before {
-            content: "";
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 75px; 
-            height: 75px;
-            background: transparent;
-            transform: translate(-50%, -50%);
-            z-index: 10000;
+            content: ""; position: absolute; top: 50%; left: 50%;
+            width: 75px; height: 75px; background: transparent;
+            transform: translate(-50%, -50%); z-index: 10000;
         }
         
-        .menu-btn-large:active { 
-            transform: scale(0.9) !important; 
-            opacity: 0.7; 
-        }
+        .menu-btn-large:active { transform: scale(0.9) !important; opacity: 0.7; }
         
-        /* 取消按鈕視覺優化 */
         #cancel-orders-btn {
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(5px);
-            letter-spacing: 0.5px;
+            backdrop-filter: blur(5px); letter-spacing: 0.5px;
         }
         
         /* =========================================
            3. 側邊選單與層級控制
            ========================================= */
         #side-menu { 
-            transition: transform 0.3s ease-in-out; 
-            display: flex; 
-            flex-direction: column;
-            backdrop-filter: blur(15px);
-            background-color: rgba(255, 255, 255, 0.5);
-            z-index: 1500; 
+            transition: transform 0.3s ease-in-out; display: flex; flex-direction: column;
+            backdrop-filter: blur(15px); background-color: rgba(255, 255, 255, 0.5); z-index: 1500; 
         }
-        
-        /* 確保內部內容在玻璃背景層之上 */
-        .glass-container > *, .card-bg > *, .header-glass > * {
-            position: relative;
-            z-index: 30;
-        }
+        .glass-container > *, .card-bg > *, .header-glass > * { position: relative; z-index: 30; }
         
         /* =========================================
-           4. 水晶玻璃核心與雙層光影系統
+           4. 水晶玻璃核心 (套用 JS 驅動變數)
            ========================================= */
-        /* --- 基礎背景設定 --- */
         .header-glass { 
-            position: relative;
-            background-color: rgba(37, 99, 235, 0.6) !important; 
-            backdrop-filter: blur(5px);
-            z-index: 100;
+            position: relative; background-color: rgba(37, 99, 235, 0.6) !important; 
+            backdrop-filter: blur(5px); z-index: 100;
         }
         
         .glass-container {
             position: relative;
             background: radial-gradient(circle at 25% 45%, rgba(255, 255, 255, 0) 85%, rgba(255, 255, 255, 0.05) 100%) !important;
-            backdrop-filter: blur(0.5px) saturate(110%);
-            -webkit-backdrop-filter: blur(0.5px) saturate(110%);
-            border-radius: 2.5rem;
-            border: none !important;
-            box-shadow: 
-                30px 10px 60px -20px rgba(0, 0, 0, 0.4), 
-                inset 12px 2px 15px -2px rgba(255, 255, 255, 0.45), 
-                inset -15px -3px 20px -5px rgba(0, 0, 0, 0.25),
-                inset 1px 1px 1px rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(0.5px) saturate(110%); -webkit-backdrop-filter: blur(0.5px) saturate(110%);
+            border-radius: 2.5rem; border: none !important;
+            box-shadow: 30px 10px 60px -20px rgba(0, 0, 0, 0.4), inset 12px 2px 15px -2px rgba(255, 255, 255, 0.45), inset -15px -3px 20px -5px rgba(0, 0, 0, 0.25), inset 1px 1px 1px rgba(255, 255, 255, 0.3);
             z-index: 10;
         }
         
+        /* 光線遮罩層：直接讀取變數 */
+        .glass-container::before {
+            content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 2.5px;
+            background: var(--glass-light) !important; /* 隨 JS 屬性變更 */
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor; mask-composite: exclude;
+            pointer-events: none !important; z-index: 20; 
+        }
+        
         .card-bg, input, select {
-            position: relative;
-            border: none !important;
-            backdrop-filter: blur(8px) saturate(120%);
-            -webkit-backdrop-filter: blur(8px) saturate(120%);
-            z-index: 1;
+            position: relative; border: none !important;
+            backdrop-filter: blur(8px) saturate(120%); -webkit-backdrop-filter: blur(8px) saturate(120%); z-index: 1;
         }
         
         .card-bg { 
-            background-color: rgba(255, 255, 255, 0.45) !important; 
-            border-radius: 1.5rem;
+            background-color: rgba(255, 255, 255, 0.45) !important; border-radius: 1.5rem;
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), inset 4px 1px 6px -1px rgba(255, 255, 255, 0.5);
         }
         
-        /* --- 雙層圖層共用遮罩設定 --- */
-        /* 🟢 第 1 層：直向光線 (預設顯示) */
-        .glass-container::before, .card-bg::before, input::before, select::before {
-            content: ""; position: absolute; inset: 0; border-radius: inherit; 
+        .card-bg::before, input::before, select::before {
+            content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1.5px; 
+            background: var(--card-light) !important; /* 隨 JS 屬性變更 */
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor; mask-composite: exclude;
-            pointer-events: none !important; z-index: 20; 
-            opacity: 1; /* 預設顯示 */
-            transition: opacity 0.3s ease;
-        }
-        
-        /* 🔵 第 2 層：橫向光線 (預設隱藏) */
-        .glass-container::after, .card-bg::after, input::after, select::after {
-            content: ""; position: absolute; inset: 0; border-radius: inherit; 
-            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            -webkit-mask-composite: xor; mask-composite: exclude;
-            pointer-events: none !important; z-index: 20; 
-            opacity: 0; /* 預設隱藏 */
-            transition: opacity 0.3s ease;
-        }
-        
-        /* --- 分配光線漸層角度 --- */
-        /* 大容器：直向 95deg */
-        .glass-container::before { padding: 2.5px; background: linear-gradient(95deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.4) 15%, rgba(255, 255, 255, 0) 45%, rgba(0, 0, 0, 0) 80%, rgba(0, 0, 0, 0.15) 92%, rgba(255, 255, 255, 0.3) 100%); }
-        /* 大容器：橫向 225deg */
-        .glass-container::after { padding: 2.5px; background: linear-gradient(225deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.4) 15%, rgba(255, 255, 255, 0.1) 40%, rgba(255, 255, 255, 0) 60%, rgba(255, 255, 255, 0.2) 100%); }
-        
-        /* 小元件：直向 95deg */
-        .card-bg::before, input::before, select::before { padding: 1.5px; background: linear-gradient(95deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 40%); }
-        /* 小元件：橫向 225deg */
-        .card-bg::after, input::after, select::after { padding: 1.5px; background: linear-gradient(225deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 50%); }
-        
-        /* =========================================
-           5. 響應式佈局：橫向模式 (圖層切換開關)
-           ========================================= */
-        @media (orientation: landscape) {
-            /* 更換橫向背景圖 */
-            body {
-                background-image: url('./background%20image/XsnP8vwC8AY1xMKJgRYqbA_RTy6BIExoDexX-xC8Oag.jpeg') !important; 
-            }
-        
-            /* 關閉直向圖層 (!important 確保絕對覆寫) */
-            .glass-container::before, .card-bg::before, input::before, select::before {
-                opacity: 0 !important;
-            }
-        
-            /* 開啟橫向圖層 (!important 確保絕對覆寫) */
-            .glass-container::after, .card-bg::after, input::after, select::after {
-                opacity: 1 !important;
-            }
+            pointer-events: none; z-index: 5;
         }
         
         /* =========================================
-           6. 響應式佈局：手機直向微調
+           5. 行動端直向微調
            ========================================= */
         @media (max-width: 640px) and (orientation: portrait) {
             .glass-container {
-                margin: 10px !important;
-                width: calc(100% - 20px) !important;
-                border-radius: 2rem !important;
+                margin: 10px !important; width: calc(100% - 20px) !important; border-radius: 2rem !important;
             }
         }
         
         /* =========================================
-           7. 全域雜項 (捲軸等)
+           6. 捲軸樣式
            ========================================= */
-        .custom-scrollbar::-webkit-scrollbar { 
-            width: 4px; 
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb { 
-            background: rgba(255, 255, 255, 0.2); 
-            border-radius: 10px; 
-        }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 10px; }
     </style>
 </head>
 <body class="min-h-screen flex justify-center font-sans overflow-x-hidden">
@@ -787,6 +704,26 @@
         }
 
         init();
+    </script>
+    <script>
+        // 建立一個函數來偵測並更新螢幕方向
+        function updateOrientation() {
+            // 判斷寬度是否大於高度 (橫向)
+            const isLandscape = window.innerWidth > window.innerHeight;
+            
+            // 在 <html> 標籤強制寫入 data-orientation 屬性
+            document.documentElement.setAttribute(
+                'data-orientation', 
+                isLandscape ? 'landscape' : 'portrait'
+            );
+        }
+    
+        // 1. 網頁剛載入時，立刻執行一次判斷
+        updateOrientation();
+    
+        // 2. 當使用者旋轉螢幕或改變視窗大小時，重新執行判斷
+        window.addEventListener('resize', updateOrientation);
+        window.addEventListener('orientationchange', updateOrientation);
     </script>
 </body>
 </html>
