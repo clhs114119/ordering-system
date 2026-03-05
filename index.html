@@ -60,39 +60,34 @@
         }
         
         /* =========================================
-           1. 基礎 HTML 與 環境設置
+           1. 基礎 HTML 與 環境設置 (單層背景版)
            ========================================= */
         html {
             height: -webkit-fill-available;
             background-color: #1a1a1a; 
-            margin: 0; padding: 0;
+            margin: 0; 
+            padding: 0;
         }
         
         body {
-            margin: 0; padding: 0;
+            margin: 0; 
+            padding: 0;
             overflow-x: hidden;
             min-height: 100vh;
             min-height: -webkit-fill-available; 
             
-            /* 背景圖改由變數控制，切換更加平滑 */
+            /* 背景圖直接由 body 負責，套用變數 */
             background-image: var(--bg-image); 
             background-size: cover;
             background-position: center center;
-            background-attachment: fixed;
+            background-attachment: fixed; /* 讓背景固定，不隨捲軸滑動 */
             background-repeat: no-repeat;
             background-color: #1a1a1a;
             
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             -webkit-font-smoothing: antialiased;
         }
-        
-        /* 背景防斷層終極補丁 */
-        body::before {
-            content: ""; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background-image: inherit; background-size: cover; background-position: center;
-            background-attachment: fixed; z-index: -10; pointer-events: none;
-        }
-        
+
         /* =========================================
            2. UI 核心元件：漢堡選單與按鈕
            ========================================= */
