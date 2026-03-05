@@ -22,7 +22,7 @@
             min-height: 100vh;
             min-height: -webkit-fill-available; 
             
-            /* 預設背景：直向 (Portrait) */
+            /* --- 預設背景：直向 (Portrait) --- */
             background-image: url('./background%20image/d7280e77f44318b33151336fd901a472.jpeg'); 
             background-size: cover;
             background-position: center center;
@@ -35,32 +35,7 @@
             -moz-osx-font-smoothing: grayscale;
         }
         
-        /* --- 2. 響應式：橫向模式 (電腦/平板/手機橫放) --- */
-        @media (orientation: landscape) {
-            body {
-                /* 橫向背景圖 */
-                background-image: url('./background%20image/XsnP8vwC8AY1xMKJgRYqbA_RTy6BIExoDexX-xC8Oag.jpeg'); 
-            }
-        
-            /* 橫向光源校正：右上 45 度 (225deg) */
-            .glass-container::before {
-                background: linear-gradient(
-                    225deg, 
-                    rgba(255, 255, 255, 0.95) 0%, 
-                    rgba(255, 255, 255, 0.4) 15%, 
-                    rgba(255, 255, 255, 0) 45%, 
-                    rgba(0, 0, 0, 0.1) 85%,
-                    rgba(255, 255, 255, 0.2) 100%
-                ) !important;
-            }
-        
-            /* 小型元件同步修正光源角度 */
-            .card-bg::before, input::before, select::before {
-                background: linear-gradient(225deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 50%) !important;
-            }
-        }
-        
-        /* --- 3. 背景防斷層補丁 (終極防白邊) --- */
+        /* --- 2. 背景防斷層補丁 (確保背景 100% 覆蓋) --- */
         body::before {
             content: "";
             position: fixed;
@@ -68,7 +43,7 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            background-image: inherit; /* 自動跟隨 body 的圖片切換 */
+            background-image: inherit; /* 自動跟隨 body 的背景圖切換 */
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
@@ -76,13 +51,13 @@
             pointer-events: none;
         }
         
-        /* --- 4. 漢堡選單 (≡)：尺寸與熱區歸位 --- */
+        /* --- 3. 漢堡選單：大尺寸與精準熱區 --- */
         .menu-btn-large { 
             position: relative; 
             z-index: 9999 !important; 
             width: 64px !important;        
             height: 64px !important;       
-            font-size: 2.8rem !important; /* 強制大尺寸 */
+            font-size: 2.8rem !important; /* 確保 ≡ 夠大 */
             line-height: 1 !important;     
             display: inline-flex !important; 
             align-items: center !important;    
@@ -93,10 +68,10 @@
             outline: none;
             pointer-events: auto !important;
             vertical-align: middle;
-            transform: none !important; /* 防止點擊位移 */
+            transform: none !important; /* 禁止任何位移，防止點擊熱區偏移 */
         }
         
-        /* 透明點擊熱區補丁 */
+        /* 點擊熱區強化層 */
         .menu-btn-large::before {
             content: "";
             position: absolute;
@@ -114,7 +89,17 @@
             opacity: 0.7; 
         }
         
-        /* --- 5. 水晶玻璃核心效果 (直向預設) --- */
+        /* --- 4. 側邊選單 --- */
+        #side-menu { 
+            transition: transform 0.3s ease-in-out; 
+            display: flex; 
+            flex-direction: column;
+            backdrop-filter: blur(15px);
+            background-color: rgba(255, 255, 255, 0.5);
+            z-index: 1500; 
+        }
+        
+        /* --- 5. 水晶玻璃核心效果 (預設直向光源 95deg) --- */
         .glass-container {
             position: relative;
             background: radial-gradient(circle at 25% 45%, rgba(255, 255, 255, 0) 85%, rgba(255, 255, 255, 0.05) 100%) !important;
@@ -129,7 +114,7 @@
             z-index: 10;
         }
         
-        /* 直向預設邊緣高光 (95deg) */
+        /* 玻璃邊緣高光層 (預設直向) */
         .glass-container::before {
             content: "";
             position: absolute;
@@ -152,11 +137,19 @@
             z-index: 20; 
         }
         
-        /* --- 6. 小型元件與取消按鈕 --- */
+        /* --- 6. 小型元件與 Header --- */
+        .header-glass { 
+            position: relative;
+            background-color: rgba(37, 99, 235, 0.6) !important; 
+            backdrop-filter: blur(5px);
+            z-index: 100;
+        }
+        
         .card-bg, input, select {
             position: relative;
             border: none !important;
             backdrop-filter: blur(8px) saturate(120%);
+            -webkit-backdrop-filter: blur(8px) saturate(120%);
             z-index: 1;
         }
         
@@ -166,7 +159,7 @@
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), inset 4px 1px 6px -1px rgba(255, 255, 255, 0.5);
         }
         
-        /* 直向小型元件高光 */
+        /* 小型元件高亮邊框 (預設直向) */
         .card-bg::before, input::before, select::before {
             content: "";
             position: absolute;
@@ -181,33 +174,57 @@
             z-index: 5;
         }
         
-        /* 取消按鈕強化 (清晰度修復) */
-        #cancel-orders-btn {
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8) !important;
-            backdrop-filter: blur(5px) !important;
-            letter-spacing: 0.5px;
-            font-weight: bold;
+        /* --- 7. 響應式佈局：橫向模式 (光源修正為右上 45 度) --- */
+        @media (orientation: landscape) {
+            body {
+                background-image: url('./background%20image/XsnP8vwC8AY1xMKJgRYqbA_RTy6BIExoDexX-xC8Oag.jpeg'); 
+            }
+        
+            /* 橫向光源校正：改為 225deg (指向左下) */
+            .glass-container::before {
+                background: linear-gradient(
+                    225deg, 
+                    rgba(255, 255, 255, 0.95) 0%, 
+                    rgba(255, 255, 255, 0.4) 15%, 
+                    rgba(255, 255, 255, 0) 45%, 
+                    rgba(0, 0, 0, 0.1) 85%,
+                    rgba(255, 255, 255, 0.2) 100%
+                ) !important;
+            }
+        
+            /* 小型元件同步切換光源 */
+            .card-bg::before, input::before, select::before {
+                background: linear-gradient(225deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 50%) !important;
+            }
         }
         
-        /* --- 7. 其他優化 --- */
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { 
-            background: rgba(255, 255, 255, 0.2); 
-            border-radius: 10px; 
-        }
-        
-        .glass-container > *, .card-bg > * {
-            position: relative;
-            z-index: 30;
-        }
-        
-        /* 手機直向專屬微調 */
+        /* --- 8. 行動端優化 (手機直向) --- */
         @media (max-width: 640px) and (orientation: portrait) {
             .glass-container {
                 margin: 10px !important;
                 width: calc(100% - 20px) !important;
                 border-radius: 2rem !important;
             }
+        }
+        
+        /* --- 9. 功能性按鈕補丁 --- */
+        #cancel-orders-btn {
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            letter-spacing: 0.5px;
+        }
+        
+        /* 確保內部內容在所有背景層之上 */
+        .glass-container > *, .card-bg > *, .header-glass > * {
+            position: relative;
+            z-index: 30;
+        }
+        
+        /* 捲軸樣式 */
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { 
+            background: rgba(255, 255, 255, 0.2); 
+            border-radius: 10px; 
         }
     </style>
 </head>
