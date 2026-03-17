@@ -219,7 +219,7 @@
                 <div>
                     <p class="font-bold text-blue-700">V3.5.2 (Current)</p>
                     <p>• 增加UUID防重放機制</p>
-                    <p>• 密鑰判定安全性提升</p>
+                    <p>• 密鑰安全性提升</p>
                     <p>• 修復錯誤並提升穩定性</p>
                 </div>
                 <div>
@@ -704,7 +704,29 @@
         }
 
         async function rechargeUser() {
-            callAPI({ action: 'recharge', seat: document.getElementById('recharge-seat').value, amount: document.getElementById('recharge-amount').value, key: adminKey });
+            const seat = document.getElementById('recharge-seat').value;
+            const amount = document.getElementById('recharge-amount').value;
+
+            // 1. 基本檢查：確保有選座號且金額大於 0
+            if (!seat) return alert("請先選擇要加值的座號！");
+            if (!amount || Number(amount) <= 0) return alert("請輸入有效的加值金額！");
+
+            // 2. 取得目前的餘額 (讓確認視窗顯示更清楚)
+            const currentBalance = globalData.balances[seat] || 0;
+            const newBalance = currentBalance + Number(amount);
+
+            // 3. 彈出確認視窗
+            const confirmMsg = `💰 確認加值資訊：\n----------------\n座號：${seat} 號\n目前餘額：$ ${currentBalance}\n加值金額：$ ${amount}\n加值後總額：$ ${newBalance}\n----------------\n確定要執行加值嗎？`;
+            
+            if (!confirm(confirmMsg)) return; // 如果按下取消，就終止執行
+
+            // 4. 確認無誤，發送 API
+            callAPI({ 
+                action: 'recharge', 
+                seat: seat, 
+                amount: amount, 
+                key: adminKey 
+            });
         }
 
         async function updateMenu() {
