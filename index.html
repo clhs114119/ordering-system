@@ -651,22 +651,25 @@
         }
         
         async function refreshStats() {
-            document.getElementById('loading-screen').classList.remove('hidden');
+            const btn = document.getElementById('refresh-btn'); // 假設你的重整按鈕有這 ID
+            if (btn) btn.classList.add('animate-spin'); // 讓按鈕圖示轉動，取代全螢幕擋住的 loading
+            
             try {
                 const res = await fetch(API_URL);
                 globalData = await res.json();
                 renderBaseUI();
+                console.log("資料已同步");
             } catch (e) {
                 alert("重新整理失敗");
             } finally {
-                document.getElementById('loading-screen').classList.add('hidden');
+                if (btn) btn.classList.remove('animate-spin');
             }
         }
 
-        // 🛡️ 修正：先向後端驗證密碼，正確才顯示管理員介面
         async function unlockAdmin() {
             const inputField = document.getElementById('admin-key-input');
             const inputKey = inputField.value.trim(); 
+            const loginBtn = document.getElementById('admin-login-btn'); // 假設你的登入按鈕有這個 ID
         
             if (!inputKey) {
                 alert("請輸入密鑰！");
@@ -674,8 +677,8 @@
                 return;
             }
             
-            // 顯示處理中畫面
-            document.getElementById('loading-screen').classList.remove('hidden');
+            // 視覺回饋：不需要開全螢幕 loading，直接按鈕顯示驗證中會感覺更快
+            if (loginBtn) { loginBtn.innerText = "驗證中..."; loginBtn.disabled = true; }
 
             try {
                 // 發送請求問後端密碼對不對
@@ -686,13 +689,11 @@
                 const resultText = await res.text();
 
                 if (resultText === "驗證成功") {
-                    // 密碼正確：記錄密鑰，並解鎖介面
                     adminKey = inputKey;
                     document.getElementById('admin-login').classList.add('hidden');
                     document.getElementById('admin-content').classList.remove('hidden');
-                    inputField.value = ""; // 清空欄位
+                    inputField.value = ""; 
                 } else {
-                    // 密碼錯誤：彈出警告並停留在登入頁面
                     alert(resultText); 
                     inputField.value = "";
                     inputField.focus();
@@ -700,8 +701,7 @@
             } catch (e) {
                 alert("連線異常，請檢查網路");
             } finally {
-                // 隱藏處理中畫面
-                document.getElementById('loading-screen').classList.add('hidden');
+                if (loginBtn) { loginBtn.innerText = "登入後台"; loginBtn.disabled = false; }
             }
         }
 
