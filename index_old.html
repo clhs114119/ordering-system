@@ -534,17 +534,34 @@
         
             // 4. 更新系統狀態標籤與鎖定邏輯
             const todayDate = new Date();
-            const yyyy = todayDate.getFullYear();
-            const mm = String(todayDate.getMonth() + 1).padStart(2, '0');
-            const dd = String(todayDate.getDate()).padStart(2, '0');
-            const todayStr = `${yyyy}-${mm}-${dd}`;
+            let isMenuUpdated = false;
             
+            // 🚀 升級：更嚴謹的「日期格式正規化」比對邏輯
+            if (globalData.lastUpdated && Array.isArray(globalData.lastUpdated)) {
+                // 取出對應今天的日期字串 (例如 C20~I20 中的其中一格)
+                const sheetDateStr = String(globalData.lastUpdated[globalData.todayIndex] || "");
+                
+                if (sheetDateStr.trim() !== "") {
+                    // 將試算表可能的各種格式 (2024/5/10, 2024/05/10) 一律正規化轉換為 YYYY-MM-DD
+                    const normalizedSheetDate = sheetDateStr
+                        .replace(/\//g, '-')          // 把所有的斜線換成橫線
+                        .split('-')                   // 拆解年月日
+                        .map(num => num.padStart(2, '0')) // 確保個位數前面會補 0 (例如 5 變成 05)
+                        .join('-');
+                    
+                    const yyyy = todayDate.getFullYear();
+                    const mm = String(todayDate.getMonth() + 1).padStart(2, '0');
+                    const dd = String(todayDate.getDate()).padStart(2, '0');
+                    const todayStr = `${yyyy}-${mm}-${dd}`;
+                    
+                    // 嚴格比對正規化後的日期
+                    isMenuUpdated = (normalizedSheetDate === todayStr);
+                }
+            }
+            
+            const isUnlocked = globalData.emergencyUnlocked === true;
             const tag = document.getElementById('status-tag');
             const orderBtn = document.getElementById('order-submit-btn');
-            
-            // 🚀 修改：後端的 lastUpdated 變成了包含 7 天的陣列，這裡自動比對「今日」的更新時間是否吻合
-            isMenuUpdated = (globalData.lastUpdated && globalData.lastUpdated[globalData.todayIndex] === todayStr);
-            const isUnlocked = globalData.emergencyUnlocked === true;
         
             if (isUnlocked) {
                 tag.innerText = "下單暫時解鎖";
