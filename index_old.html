@@ -674,7 +674,7 @@
             if (!isMenuUpdated && !isUnlocked) {
                 submitBtn.classList.add('opacity-50', 'cursor-not-allowed', 'grayscale');
                 submitBtn.disabled = true;
-                submitBtn.innerHTML = `<span>目前鎖定訂餐 (菜單未更新)</span>`;
+                submitBtn.innerHTML = `<span>目前鎖定訂餐 (菜單未更新或已過訂餐時間)</span>`;
                 return;
             }
         
