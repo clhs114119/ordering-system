@@ -461,7 +461,7 @@
             </div>
         </div>
     </div>
-
+    
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbxkdIG03i2H1aMQW10icaZtNW5m6sxC3LIGEXNIrOZnDyDs8Cp1h2FjTZyJZIvTYl68/exec"; 
         let globalData = {};
@@ -842,7 +842,7 @@
             });
         }
 
-                // 🚀 新增：只更新單一天的價格，然後組合出整週陣列送出給後端
+        // 🚀 新增：只更新單一天的價格，然後組合出整週陣列送出給後端
         async function updateSingleDayPrice() {
             const dayIdx = parseInt(document.getElementById('price-date-select').value);
             const inputs = document.querySelectorAll('.price-input');
@@ -928,4 +928,3 @@
         window.addEventListener('resize', updateOrientation);
         window.addEventListener('orientationchange', updateOrientation);
     </script>
-
