@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>119定餐系統 V3.5.3</title>
+    <title>119定餐系統 V3.5.5</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* =========================================
@@ -235,7 +235,7 @@
     <div id="side-menu" class="fixed top-0 left-0 h-full w-64 z-50 shadow-2xl transform -translate-x-full">
         <div class="p-8 header-glass text-white shrink-0">
             <h2 class="text-xl font-black italic">119 訂餐系統</h2>
-            <p class="text-[10px] opacity-80 tracking-widest">V3.5.3 正式版</p>
+            <p class="text-[10px] opacity-80 tracking-widest">V3.5.5 正式版</p>
         </div>
         
         <nav class="p-4 space-y-2 flex-grow">
@@ -249,7 +249,12 @@
             <h3 class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3">更新日誌</h3>
             <div class="space-y-4 max-h-52 overflow-y-auto custom-scrollbar pr-2 text-[11px] text-gray-600">
                 <div>
-                    <p class="font-bold text-blue-700">V3.5.4 (Current)</p>
+                    <p class="font-bold text-blue-700">V3.5.5 (Current)</p>
+                    <p>• 批量修改整週價格</p>
+                    <p>• 修復錯誤並提升穩定性</p>
+                </div>
+                <div>
+                    <p class="font-bold text-gray-700">V3.5.4</p>
                     <p>• HTML壓縮</p>
                     <p>• 提升系統載入速度</p>
                     <p>• 修復錯誤並提升穩定性</p>
@@ -401,9 +406,16 @@
                 </div>
 
                 <div class="card-bg p-5 rounded-3xl shadow-sm space-y-3">
-                    <h3 class="font-black text-gray-700 border-b border-gray-200/30 pb-2">🍱 修改價格</h3>
-                    <div id="admin-menu-edit" class="space-y-2 max-h-40 overflow-y-auto custom-scrollbar"></div>
-                    <button onclick="updateMenu()" class="w-full bg-blue-600/70 text-white py-3 rounded-xl font-bold shadow-md">更新菜單</button>
+                    <h3 class="font-black text-gray-700 border-b border-gray-200/30 pb-2">🍱 修改週價格</h3>
+                    <div class="flex text-[9px] font-bold text-gray-400 px-1 mb-1">
+                        <div class="w-20">品項</div>
+                        <div class="flex-1 grid grid-cols-7 text-center gap-1">
+                            <div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div class="text-blue-500">六</div><div class="text-red-500">日</div>
+                        </div>
+                    </div>
+                    <div id="admin-menu-edit" class="space-y-3 max-h-60 overflow-y-auto custom-scrollbar pr-1">
+                        </div>
+                    <button onclick="updateMenu()" class="w-full bg-blue-600/70 text-white py-3 rounded-xl font-bold shadow-md active:scale-95 transition-all">同步更新全週價格</button>
                 </div>
 
                 <div class="card-bg p-5 rounded-3xl shadow-sm space-y-4 border-green-200/30">
@@ -479,16 +491,19 @@
                 });
             });
         
-            // 2. 渲染今日菜單列表
+            // 2. 渲染今日菜單列表 (根據 todayIndex 自動抓取當天價格)
             const menuBox = document.getElementById('menu-list');
             menuBox.innerHTML = "";
+            const dayIdx = globalData.todayIndex; // 後端回傳的今日星期索引 (0=一, 6=日)
+
             globalData.menu.forEach(item => {
+                const todayPrice = item.prices[dayIdx]; // 取得今日對應價格
                 const div = document.createElement('div');
                 div.className = "card-bg flex justify-between items-center p-4 border border-white/20 rounded-2xl cursor-pointer hover:bg-white/40 transition-all";
-                div.onclick = () => toggleItem(item, div);
+                div.onclick = () => toggleItem({ ...item, price: todayPrice }, div); // 將今日價格綁定進去
                 div.innerHTML = `
                     <span class="font-bold text-gray-800">${item.name}</span>
-                    <span class="font-black text-gray-500">$${item.price}</span>
+                    <span class="font-black text-gray-500">$${todayPrice}</span>
                 `;
                 menuBox.appendChild(div);
             });
@@ -515,7 +530,8 @@
             const tag = document.getElementById('status-tag');
             const orderBtn = document.getElementById('order-submit-btn');
             
-            isMenuUpdated = (globalData.lastUpdated === today);
+            // 檢查今天的價格是否有更新時間紀錄
+            isMenuUpdated = (globalData.lastUpdated[dayIdx] === today);
             const isUnlocked = globalData.emergencyUnlocked === true;
         
             if (isUnlocked) {
@@ -535,18 +551,29 @@
                 }
             }
         
-            // 5. 渲染管理員價格修改清單
+            // 5. 渲染管理員價格修改清單 (橫向 7 天價格輸入)
             const adminMenu = document.getElementById('admin-menu-edit');
             if (adminMenu) {
                 adminMenu.innerHTML = "";
                 globalData.menu.forEach(item => {
                     const div = document.createElement('div');
-                    div.className = "flex items-center gap-2 bg-white/20 p-2 rounded-lg text-xs mb-1";
+                    div.className = "flex flex-col gap-1 bg-white/20 p-3 rounded-2xl text-xs mb-2 border border-white/10";
+                    
+                    let inputsHtml = `<div class="grid grid-cols-7 gap-1">`;
+                    item.prices.forEach((p, idx) => {
+                        inputsHtml += `
+                            <input type="number" data-id="${item.id}" data-day="${idx}" 
+                                class="w-full p-1 rounded text-center price-input bg-white/40 text-gray-800 border border-white/20 font-mono" 
+                                value="${p}">`;
+                    });
+                    inputsHtml += `</div>`;
+
                     div.innerHTML = `
-                        <span class="flex-1 font-bold text-gray-700">${item.name}</span>
-                        <input type="number" data-id="${item.id}" 
-                            class="w-16 p-1 rounded text-right price-input bg-white/10 text-gray-800 border border-white/20" 
-                            value="${item.price}">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-bold text-gray-700">${item.name}</span>
+                            <span class="text-[8px] opacity-50">ID: ${item.id}</span>
+                        </div>
+                        ${inputsHtml}
                     `;
                     adminMenu.appendChild(div);
                 });
@@ -639,7 +666,6 @@
             }
         }
 
-        // 🛡️ 新增：UUID 生成函數 (防重放攻擊核心)
         function generateUUID() {
             if (crypto && crypto.randomUUID) {
                 return crypto.randomUUID();
@@ -672,7 +698,6 @@
         
             if (!confirm(confirmMsg)) return;     
             
-            // 🛡️ 更新：送出訂單時，自動夾帶一組 UUID
             callAPI({ 
                 action: 'order', 
                 seat: seat, 
@@ -689,21 +714,14 @@
         }
         
         async function refreshStats() {
-            // 🛡️ 顯示全螢幕處理中畫面
             document.getElementById('loading-screen').classList.remove('hidden');
-            
             try {
-                // 向後端請求最新資料 (現在會直接從快取拿，速度極快)
                 const res = await fetch(API_URL);
                 globalData = await res.json();
-                
-                // 重新渲染畫面 (請確保你用來更新畫面的函數名稱是 renderBaseUI)
                 renderBaseUI(); 
-                
             } catch (e) {
                 alert("重新整理失敗，請檢查網路連線");
             } finally {
-                // 🛡️ 隱藏全螢幕處理中畫面
                 document.getElementById('loading-screen').classList.add('hidden');
             }
         }
@@ -711,24 +729,15 @@
         async function unlockAdmin() {
             const inputField = document.getElementById('admin-key-input');
             const inputKey = inputField.value.trim(); 
-        
-            if (!inputKey) {
-                alert("請輸入密鑰！");
-                inputField.focus();
-                return;
-            }
+            if (!inputKey) return alert("請輸入密鑰！");
             
-            // 🛡️ 恢復：顯示全螢幕處理中畫面，防止使用者連點並給予明確回饋
             document.getElementById('loading-screen').classList.remove('hidden');
-
             try {
-                // 發送請求問後端密碼對不對
                 const res = await fetch(API_URL, { 
                     method: 'POST', 
                     body: JSON.stringify({ action: 'verifyKey', key: inputKey }) 
                 });
                 const resultText = await res.text();
-
                 if (resultText === "驗證成功") {
                     adminKey = inputKey;
                     document.getElementById('admin-login').classList.add('hidden');
@@ -736,13 +745,10 @@
                     inputField.value = ""; 
                 } else {
                     alert(resultText); 
-                    inputField.value = "";
-                    inputField.focus();
                 }
             } catch (e) {
-                alert("連線異常，請檢查網路");
+                alert("連線異常");
             } finally {
-                // 🛡️ 恢復：隱藏全螢幕處理中畫面
                 document.getElementById('loading-screen').classList.add('hidden');
             }
         }
@@ -754,39 +760,39 @@
         async function rechargeUser() {
             const seat = document.getElementById('recharge-seat').value;
             const amount = document.getElementById('recharge-amount').value;
-
-            // 1. 基本檢查：確保有選座號且金額大於 0
             if (!seat) return alert("請先選擇要加值的座號！");
-            if (!amount || Number(amount) <= 0) return alert("請輸入有效的加值金額！");
-
-            // 2. 取得目前的餘額 (讓確認視窗顯示更清楚)
+            if (!amount || Number(amount) <= 0) return alert("請輸入金額！");
             const currentBalance = globalData.balances[seat] || 0;
-            const newBalance = currentBalance + Number(amount);
-
-            // 3. 彈出確認視窗
-            const confirmMsg = `💰 確認加值資訊：\n----------------\n座號：${seat} 號\n目前餘額：$ ${currentBalance}\n加值金額：$ ${amount}\n加值後總額：$ ${newBalance}\n----------------\n確定要執行加值嗎？`;
-            
-            if (!confirm(confirmMsg)) return; // 如果按下取消，就終止執行
-
-            // 4. 確認無誤，發送 API
-            callAPI({ 
-                action: 'recharge', 
-                seat: seat, 
-                amount: amount, 
-                key: adminKey 
-            });
+            const confirmMsg = `💰 加值確認：\n座號：${seat} 號\n目前：$ ${currentBalance}\n加值：$ ${amount}\n確定執行？`;
+            if (confirm(confirmMsg)) {
+                callAPI({ action: 'recharge', seat: seat, amount: amount, key: adminKey });
+            }
         }
 
+        // 🚀 修改：更新全週價格邏輯
         async function updateMenu() {
-            const nm = Array.from(document.querySelectorAll('.price-input')).map(i=>({id: i.dataset.id, price: i.value}));
-            callAPI({ action: 'updateMenu', newMenu: nm, key: adminKey });
+            const menuMap = {};
+            // 抓取所有輸入框，按 ID 分組組裝成 prices 陣列
+            document.querySelectorAll('.price-input').forEach(input => {
+                const id = input.dataset.id;
+                const day = parseInt(input.dataset.day);
+                if (!menuMap[id]) menuMap[id] = new Array(7).fill(0);
+                menuMap[id][day] = Number(input.value);
+            });
+
+            const nm = Object.keys(menuMap).map(id => ({
+                id: id,
+                prices: menuMap[id]
+            }));
+
+            if(confirm("確定同步更新全週價格嗎？")) {
+                callAPI({ action: 'updateMenu', newMenu: nm, key: adminKey });
+            }
         }
 
         async function updateKey() {
             const newKey = document.getElementById('new-key-input').value.trim();
             if (!newKey) return alert("新密鑰不能為空！");
-            if (newKey.length < 4) return alert("密鑰長度建議至少 4 位數");
-            
             callAPI({ action: 'updateKey', newKey: newKey, key: adminKey });
         }
 
@@ -795,23 +801,15 @@
             try {
                 const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
                 const resultText = await res.text();
-                
-                if (payload.action === 'order' && resultText.includes("成功")) {
-                    const seat = payload.seat;
-                    const itemNames = payload.items.map(i => i.name).join('、');
-                    alert(`✅ 訂餐成功！\n座號：${seat} 號\n已記錄餐點：${itemNames}`);
-                } else {
-                    alert(resultText);
-                    // 🛡️ 如果是因為密碼錯誤被擋下，把畫面退回登入頁面
-                    if (resultText.includes("密鑰錯誤")) {
-                        document.getElementById('admin-login').classList.remove('hidden');
-                        document.getElementById('admin-content').classList.add('hidden');
-                        adminKey = "";
-                    }
+                alert(resultText);
+                if (resultText.includes("密鑰錯誤")) {
+                    document.getElementById('admin-login').classList.remove('hidden');
+                    document.getElementById('admin-content').classList.add('hidden');
+                    adminKey = "";
                 }
                 location.reload();
             } catch (e) { 
-                alert("連線異常，請檢查網路"); 
+                alert("連線異常"); 
                 document.getElementById('loading-screen').classList.add('hidden'); 
             }
         }
@@ -841,5 +839,3 @@
         window.addEventListener('resize', updateOrientation);
         window.addEventListener('orientationchange', updateOrientation);
     </script>
-</body>
-</html>
