@@ -842,7 +842,7 @@
             });
         }
 
-        // 🚀 新增：只更新單一天的價格，然後組合出整週陣列送出給後端
+                // 🚀 新增：只更新單一天的價格，然後組合出整週陣列送出給後端
         async function updateSingleDayPrice() {
             const dayIdx = parseInt(document.getElementById('price-date-select').value);
             const inputs = document.querySelectorAll('.price-input');
@@ -865,7 +865,8 @@
                 }
             });
             
-            callAPI({ action: 'updateMenu', newMenu: newMenuArray, key: adminKey });
+            // 🚀 修改這裡：把 dayIdx 傳給後端，讓後端知道更新哪一天的日期
+            callAPI({ action: 'updateMenu', newMenu: newMenuArray, key: adminKey, modifiedDay: dayIdx });
         }
 
         async function updateKey() {
