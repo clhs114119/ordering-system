@@ -535,11 +535,9 @@
             // 4. 更新系統狀態標籤與鎖定邏輯
             const todayDate = new Date();
             let isMenuUpdated = false;
-            let displayDate = ""; // 用於顯示在標籤上的日期字串
             
             if (globalData.lastUpdated && Array.isArray(globalData.lastUpdated)) {
                 const sheetDateStr = String(globalData.lastUpdated[globalData.todayIndex] || "");
-                displayDate = sheetDateStr; // 暫存試算表讀取到的日期
                 
                 if (sheetDateStr.trim() !== "") {
                     // 正規化格式進行比對
@@ -568,7 +566,7 @@
                 orderBtn.classList.remove('disabled-btn');
             } else {
                 // 修改處：在提示文字中加入顯示日期
-                tag.innerText = isMenuUpdated ? `${displayDate}的今日菜單已更新` : `${displayDate}的菜單未更新`;
+                tag.innerText = isMenuUpdated ? `今日菜單已更新` : `菜單未更新`;
                 
                 tag.className = isMenuUpdated 
                     ? "mt-1 text-[8px] tracking-widest uppercase px-3 py-1 rounded-full bg-green-500/50 text-white inline-block"
