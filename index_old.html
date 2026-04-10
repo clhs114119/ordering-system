@@ -535,18 +535,18 @@
             // 4. 更新系統狀態標籤與鎖定邏輯
             const todayDate = new Date();
             let isMenuUpdated = false;
+            let displayDate = ""; // 用於顯示在標籤上的日期字串
             
-            // 🚀 升級：更嚴謹的「日期格式正規化」比對邏輯
             if (globalData.lastUpdated && Array.isArray(globalData.lastUpdated)) {
-                // 取出對應今天的日期字串 (例如 C20~I20 中的其中一格)
                 const sheetDateStr = String(globalData.lastUpdated[globalData.todayIndex] || "");
+                displayDate = sheetDateStr; // 暫存試算表讀取到的日期
                 
                 if (sheetDateStr.trim() !== "") {
-                    // 將試算表可能的各種格式 (2024/5/10, 2024/05/10) 一律正規化轉換為 YYYY-MM-DD
+                    // 正規化格式進行比對
                     const normalizedSheetDate = sheetDateStr
-                        .replace(/\//g, '-')          // 把所有的斜線換成橫線
-                        .split('-')                   // 拆解年月日
-                        .map(num => num.padStart(2, '0')) // 確保個位數前面會補 0 (例如 5 變成 05)
+                        .replace(/\//g, '-')
+                        .split('-')
+                        .map(num => num.padStart(2, '0'))
                         .join('-');
                     
                     const yyyy = todayDate.getFullYear();
@@ -554,7 +554,6 @@
                     const dd = String(todayDate.getDate()).padStart(2, '0');
                     const todayStr = `${yyyy}-${mm}-${dd}`;
                     
-                    // 嚴格比對正規化後的日期
                     isMenuUpdated = (normalizedSheetDate === todayStr);
                 }
             }
@@ -568,7 +567,9 @@
                 tag.className = "mt-1 text-[8px] tracking-widest uppercase px-3 py-1 rounded-full bg-purple-500/70 text-white inline-block";
                 orderBtn.classList.remove('disabled-btn');
             } else {
-                tag.innerText = isMenuUpdated ? "菜單已更新" : "菜單未更新";
+                // 修改處：在提示文字中加入顯示日期
+                tag.innerText = isMenuUpdated ? `${displayDate}的今日菜單已更新` : `${displayDate}的菜單未更新`;
+                
                 tag.className = isMenuUpdated 
                     ? "mt-1 text-[8px] tracking-widest uppercase px-3 py-1 rounded-full bg-green-500/50 text-white inline-block"
                     : "mt-1 text-[8px] tracking-widest uppercase px-3 py-1 rounded-full bg-orange-500/50 text-white inline-block";
