@@ -219,6 +219,26 @@
            ========================================= */
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 10px; }
+
+        /* =========================================
+           7. 表格與橫向捲動修正 (新增)
+           ========================================= */
+        /* 讓行動端水平滾動更順暢 (解決 iOS 彈性延遲) */
+        .overflow-x-auto {
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* 強化 sticky 的相容性與基礎層級 */
+        .sticky {
+            position: -webkit-sticky; /* 相容舊版 Safari */
+            position: sticky;
+            z-index: 10; 
+        }
+        
+        /* 表頭的 sticky 必須比表身的更高，避免往下滑時被內容蓋住 */
+        thead th.sticky {
+            z-index: 20; 
+        }
         
     </style>
 </head>
@@ -417,7 +437,9 @@
                         <table class="w-full text-left min-w-[500px] border-collapse">
                             <thead class="bg-gray-50/50 text-[10px] text-gray-500 font-bold uppercase">
                                 <tr>
-                                    <th class="p-2 border-b border-gray-100 sticky left-0 bg-white/60 z-20 w-24 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">品項</th>
+                                    <th class="p-2 border-b border-gray-100 sticky left-0 bg-white/80 backdrop-blur-md z-20 w-24 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                                        品項
+                                    </th>
                                     <th class="p-2 border-b border-gray-100 text-center">一</th>
                                     <th class="p-2 border-b border-gray-100 text-center">二</th>
                                     <th class="p-2 border-b border-gray-100 text-center">三</th>
@@ -939,9 +961,8 @@
                         </td>`;
                 });
 
-                // 找到這段並替換：
                 tr.innerHTML = `
-                    <td class="p-2 font-bold text-gray-700 sticky left-0 bg-white/60 backdrop-blur-md z-10 text-[11px] border-r border-gray-100 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">
+                    <td class="p-2 font-bold text-gray-700 sticky left-0 bg-white/80 z-10 text-[11px] border-r border-gray-100 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
                         ${item.name}
                     </td>
                     ${dayInputsHTML}
