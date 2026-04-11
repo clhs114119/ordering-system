@@ -250,7 +250,8 @@
             <div class="space-y-4 max-h-52 overflow-y-auto custom-scrollbar pr-2 text-[11px] text-gray-600">
                 <div>
                     <p class="font-bold text-blue-700">V3.5.5 (Current)</p>
-                    <p>• 批量修改整週價格</p>
+                    <p>• 優化後端寫入邏輯</p>
+                    <p>• 加入整週價格修改功能</p>
                     <p>• 修復錯誤並提升穩定性</p>
                 </div>
                 <div>
@@ -406,18 +407,34 @@
                 </div>
 
                 <div class="card-bg p-5 rounded-3xl shadow-sm space-y-3">
-                    <h3 class="font-black text-gray-700 border-b border-gray-200/30 pb-2">🍱 修改單日價格</h3>
+                    <h3 class="font-black text-gray-700 border-b border-gray-200/30 pb-2 flex justify-between items-center">
+                        <span>📅 修改價格</span>
+                    </h3>
                     
-                    <select id="price-date-select" onchange="renderSingleDayMenuEdit()" class="w-full p-3 rounded-xl font-bold outline-none bg-white/40 border border-gray-200/50 shadow-sm text-gray-700 mb-2">
-                        </select>
+                    <p class="text-[10px] text-gray-400 leading-tight mb-2">請橫向滑動表格填寫週一至週日價格，修改完畢後按最下方按鈕送出。</p>
 
-                    <div class="flex text-[10px] font-bold text-gray-400 px-1 mb-1 mt-1">
-                        <div class="w-1/2">品項</div>
-                        <div class="w-1/2 text-center">該日價格</div>
+                    <div class="overflow-x-auto custom-scrollbar border border-gray-100 rounded-xl">
+                        <table class="w-full text-left min-w-[500px] border-collapse">
+                            <thead class="bg-gray-50/50 text-[10px] text-gray-500 font-bold uppercase">
+                                <tr>
+                                    <th class="p-2 border-b border-gray-100 sticky left-0 bg-white/60 z-20 w-24 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">品項</th>
+                                    <th class="p-2 border-b border-gray-100 text-center">一</th>
+                                    <th class="p-2 border-b border-gray-100 text-center">二</th>
+                                    <th class="p-2 border-b border-gray-100 text-center">三</th>
+                                    <th class="p-2 border-b border-gray-100 text-center">四</th>
+                                    <th class="p-2 border-b border-gray-100 text-center">五</th>
+                                    <th class="p-2 border-b border-gray-100 text-center">六</th>
+                                    <th class="p-2 border-b border-gray-100 text-center">日</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-batch-menu-body" class="divide-y divide-gray-50">
+                                </tbody>
+                        </table>
                     </div>
-                    <div id="admin-menu-edit" class="space-y-3 max-h-60 overflow-y-auto custom-scrollbar pr-1">
-                        </div>
-                    <button onclick="updateSingleDayPrice()" class="w-full bg-blue-600/70 text-white py-3 rounded-xl font-bold shadow-md active:scale-95 transition-all">確認修改</button>
+
+                    <button onclick="submitWholeWeekUpdate()" class="w-full bg-blue-600/80 text-white py-4 rounded-2xl font-black shadow-lg active:scale-95 transition-all mt-2 border border-white/20">
+                        儲存並更新整週菜單
+                    </button>
                 </div>
 
                 <div class="card-bg p-5 rounded-3xl shadow-sm space-y-4 border-green-200/30">
@@ -607,28 +624,39 @@
             checkBalanceStatus(0); 
         }
 
-        // 🚀 新增：動態渲染選擇的「那一天」的輸入框
-        function renderSingleDayMenuEdit() {
-            const adminMenu = document.getElementById('admin-menu-edit');
-            const selectEl = document.getElementById('price-date-select');
-            if (!adminMenu || !selectEl) return;
-            
-            const dayIdx = parseInt(selectEl.value);
-            adminMenu.innerHTML = "";
-            
-            globalData.menu.forEach(item => {
-                const div = document.createElement('div');
-                div.className = "flex items-center gap-2 bg-white/20 p-2 rounded-lg text-xs mb-1";
-                div.innerHTML = `
-                    <span class="flex-1 font-bold text-gray-700">${item.name}</span>
-                    <span class="text-gray-400 font-mono pr-1">$</span>
-                    <input type="number" data-id="${item.id}" 
-                        class="w-16 p-1 rounded text-right price-input bg-white/40 text-gray-800 border border-white/40 focus:bg-white focus:outline-blue-400" 
-                        value="${item.prices[dayIdx]}">
+        function renderStats() {
+            const tableBody = document.getElementById('stats-table-body');
+            if (!tableBody) return;
+            tableBody.innerHTML = "";
+
+            // 確保 stats 存在且是一個陣列
+            const stats = Array.isArray(globalData.stats) ? globalData.stats : [];
+
+            // 安全地尋找總計行
+            const summary = stats.find(s => s && s.name && (s.name.includes("總結") || s.name === "總計")) 
+                            || { qty: 0, total: 0 };
+
+            foodStats.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-white/20 transition-colors";
+                tr.innerHTML = `
+                    <td class="p-4 font-bold text-gray-700">${row.name}</td>
+                    <td class="p-4 text-center">${row.qty}</td>
+                    <td class="p-4 text-right font-mono">$${row.total}</td>
                 `;
-                adminMenu.appendChild(div);
+                tableBody.appendChild(tr);
             });
+
+            document.getElementById('total-qty').innerText = summary.qty;
+            document.getElementById('total-sum').innerText = `$ ${summary.total}`;
         }
+
+        function handleOrientation() {
+            const isLandscape = window.innerWidth > window.innerHeight;
+            document.documentElement.setAttribute('data-orientation', isLandscape ? 'landscape' : 'portrait');
+        }
+        window.addEventListener('resize', handleOrientation);
+        handleOrientation();
 
         function toggleItem(item, div) {
             const idx = selectedItems.findIndex(i => i.id === item.id);
@@ -639,7 +667,7 @@
                 selectedItems.push(item);
                 div.className = "flex justify-between items-center p-4 border border-blue-400 bg-blue-500/40 rounded-2xl cursor-pointer shadow-inner transition-all";
             }
-            const total = selectedItems.reduce((s,i) => s + Number(i.price), 0);
+            const total = selectedItems.reduce((s,i) => s + parseFloat(i.price.toString().replace(/[^0-9.]/g, '')) || 0);
             document.getElementById('total-amount').innerText = `$ ${total}`;
             checkBalanceStatus(total);
         }
@@ -660,7 +688,7 @@
                 displayElement.classList.add('text-blue-700'); 
             }
         
-            const total = selectedItems.reduce((sum, i) => sum + Number(i.price), 0);
+            const total = selectedItems.reduce((sum, i) => sum + parseFloat(i.price.toString().replace(/[^0-9.]/g, '')) || 0);
             checkBalanceStatus(total); 
         }
         
@@ -725,6 +753,10 @@
         }
 
         async function sendOrder() {
+            // 取得送出按鈕
+            const submitBtn = document.querySelector('button[onclick="sendOrder()"]');
+
+            // 1. 基本狀態與表單檢查
             if (!isMenuUpdated && !globalData.emergencyUnlocked) {
                 return alert("目前鎖定訂餐！(菜單未更新或已過訂餐時間)");
             }
@@ -732,28 +764,53 @@
             const seat = document.getElementById('seat-select').value;
             if (!seat) return alert("請先選擇座號！");
             if (selectedItems.length === 0) return alert("請至少選擇一項餐點！");
-        
-            const totalCost = selectedItems.reduce((sum, item) => sum + Number(item.price), 0);
+
+            // 2. 🛡️ 安全計算總金額 (過濾掉可能的非數字字元，例如 "$")
+            const totalCost = selectedItems.reduce((sum, item) => {
+                const safePrice = parseFloat(item.price.toString().replace(/[^0-9.]/g, '')) || 0;
+                return sum + safePrice;
+            }, 0);
+            
             const currentBalance = globalData.balances[seat] || 0;
-        
+
+            // 3. 餘額檢查
             if (currentBalance < totalCost) {
                 alert(`❌ 餘額不足，無法訂餐！\n----------------\n座號：${seat} 號\n目前餘額：$ ${currentBalance}\n訂單總額：$ ${totalCost}\n----------------\n請找管理員加值後再試。`);
                 return; 
             }
-        
+
+            // 4. 最終確認
             const itemNames = selectedItems.map(i => i.name).join('、');
             const confirmMsg = `核對訂購資訊：\n----------------\n座號：${seat} 號\n餐點：${itemNames}\n總計金額：$ ${totalCost}\n----------------\n確認要送出訂單嗎？`;
-        
+
             if (!confirm(confirmMsg)) return;     
             
-            // 🛡️ 更新：送出訂單時，自動夾帶一組 UUID
-            callAPI({ 
-                action: 'order', 
-                seat: seat, 
-                items: selectedItems,
-                total: totalCost,
-                uuid: generateUUID() 
-            });
+            // 5. 🚀 使用者確認後，開始鎖定按鈕防止連點
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = `<span>處理中...</span>`;
+                submitBtn.classList.add('opacity-50', 'cursor-not-allowed', 'grayscale');
+            }
+
+            // 6. 發送 API 請求
+            try {
+                // 🛡️ 送出訂單時，自動夾帶一組 UUID，記得加上 await
+                await callAPI({ 
+                    action: 'order', 
+                    seat: seat, 
+                    items: selectedItems,
+                    total: totalCost,
+                    uuid: generateUUID() 
+                });
+                // 註：依據你之前的邏輯，callAPI 成功後會觸發 location.reload()，所以這裡不需要特別解除鎖定
+            } catch (e) {
+                // 如果發生網路異常沒有成功 reload，則恢復按鈕狀態讓使用者可以重試
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = `<span>確認送出訂單</span>`;
+                    submitBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'grayscale');
+                }
+            }
         }
 
         async function cancelAllOrders() {
@@ -814,6 +871,7 @@
                     adminKey = inputKey;
                     document.getElementById('admin-login').classList.add('hidden');
                     document.getElementById('admin-content').classList.remove('hidden');
+                    renderBatchMenuEdit();
                     inputField.value = ""; 
                 } else {
                     alert(resultText); 
@@ -858,31 +916,71 @@
             });
         }
 
-        // 🚀 新增：只更新單一天的價格，然後組合出整週陣列送出給後端
-        async function updateSingleDayPrice() {
-            const dayIdx = parseInt(document.getElementById('price-date-select').value);
-            const inputs = document.querySelectorAll('.price-input');
-            const newMenuArray = [];
+        // 🚀 核心更新：渲染「全週價格」批次修改表格
+        function renderBatchMenuEdit() {
+            const tableBody = document.getElementById('admin-batch-menu-body');
+            if (!tableBody) return;
             
-            inputs.forEach(input => {
-                const itemId = input.dataset.id;
-                const updatedPrice = Number(input.value);
+            tableBody.innerHTML = "";
+            
+            globalData.menu.forEach(item => {
+                const tr = document.createElement('tr');
                 
-                // 找出原始資料的 7 天價格陣列
-                const originalItem = globalData.menu.find(i => String(i.id) === String(itemId));
-                if (originalItem) {
-                    const clonedPrices = [...originalItem.prices]; // 複製一份
-                    clonedPrices[dayIdx] = updatedPrice; // 替換掉被選取的那天的價格
-                    
-                    newMenuArray.push({
-                        id: itemId,
-                        prices: clonedPrices
-                    });
-                }
+                // 生成 7 天的 Input 欄位
+                let dayInputsHTML = "";
+                item.prices.forEach((price, dayIdx) => {
+                    dayInputsHTML += `
+                        <td class="p-1">
+                            <input type="number" 
+                                class="batch-price-input w-full p-1.5 text-center text-xs bg-white/60 rounded-lg border border-gray-100 focus:bg-white focus:ring-1 focus:ring-blue-400 outline-none transition-all" 
+                                data-id="${item.id}" 
+                                data-day="${dayIdx}" 
+                                value="${price}">
+                        </td>`;
+                });
+
+                // 找到這段並替換：
+                tr.innerHTML = `
+                    <td class="p-2 font-bold text-gray-700 sticky left-0 bg-white/60 backdrop-blur-md z-10 text-[11px] border-r border-gray-100 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">
+                        ${item.name}
+                    </td>
+                    ${dayInputsHTML}
+                `;
+                tableBody.appendChild(tr);
             });
-            
-            // 🚀 修改這裡：把 dayIdx 傳給後端，讓後端知道更新哪一天的日期
-            callAPI({ action: 'updateMenu', newMenu: newMenuArray, key: adminKey, modifiedDay: dayIdx });
+        }
+
+        // 🚀 核心更新：收集全表格資料並「一次性」送出
+        async function submitWholeWeekUpdate() {
+            if (!confirm("確定要更新「全週」所有價格嗎？\n這將會同步覆蓋週一至週日的設定。")) return;
+
+            const inputs = document.querySelectorAll('.batch-price-input');
+            const menuMap = {};
+
+            // 1. 先將所有 input 的資料按 ID 分類收集
+            inputs.forEach(input => {
+                const id = input.dataset.id;
+                const dayIdx = parseInt(input.dataset.day);
+                const price = Number(input.value) || 0;
+
+                if (!menuMap[id]) {
+                    menuMap[id] = new Array(7).fill(0);
+                }
+                menuMap[id][dayIdx] = price;
+            });
+
+            // 2. 轉換為後端期待的陣列格式 [{id: 1, prices: [...]}, ...]
+            const newMenuArray = Object.keys(menuMap).map(id => ({
+                id: id,
+                prices: menuMap[id]
+            }));
+
+            // 3. 呼叫 API (注意：不傳 modifiedDay 參數，讓後端執行全週更新邏輯)
+            callAPI({ 
+                action: 'updateMenu', 
+                newMenu: newMenuArray, 
+                key: adminKey 
+            });
         }
 
         async function updateKey() {
