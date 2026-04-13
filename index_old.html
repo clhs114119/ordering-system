@@ -650,25 +650,27 @@
             const tableBody = document.getElementById('stats-table-body');
             if (!tableBody) return;
             tableBody.innerHTML = "";
-
-            // 確保 stats 存在且是一個陣列
+        
             const stats = Array.isArray(globalData.stats) ? globalData.stats : [];
-
-            // 安全地尋找總計行
+        
+            // --- 修正：定義 foodStats，過濾掉非食物品項 (索引 1-15 為食物) ---
+            const foodStats = stats.slice(1, 16); 
+        
             const summary = stats.find(s => s && s.name && (s.name.includes("總結") || s.name === "總計")) 
                             || { qty: 0, total: 0 };
-
+        
             foodStats.forEach(row => {
+                if (!row) return; // 安全檢查
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-white/20 transition-colors";
                 tr.innerHTML = `
-                    <td class="p-4 font-bold text-gray-700">${row.name}</td>
-                    <td class="p-4 text-center">${row.qty}</td>
-                    <td class="p-4 text-right font-mono">$${row.total}</td>
+                    <td class="p-4 font-bold text-gray-700">${row.name || "---"}</td>
+                    <td class="p-4 text-center">${row.qty || 0}</td>
+                    <td class="p-4 text-right font-mono">$${row.total || 0}</td>
                 `;
                 tableBody.appendChild(tr);
             });
-
+        
             document.getElementById('total-qty').innerText = summary.qty;
             document.getElementById('total-sum').innerText = `$ ${summary.total}`;
         }
