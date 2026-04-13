@@ -554,26 +554,29 @@
                 menuBox.appendChild(div);
             });
 
-            // --- 修改 renderBaseUI 內的第 3 點 ---
+            // 3. 渲染今日統計表格
             const tableBody = document.getElementById('stats-table-body');
             tableBody.innerHTML = "";
             
-            // 假設 1-19 行是食物品項
-            for (let i = 1; i < 20; i++) {
-                const row = globalData.stats[i] || { name: "", qty: 0, total: 0 };
+            // 假設餐點只到第 14 筆（紅茶綠茶等），避免跑出下方的空白列
+            for (let i = 1; i < 15; i++) { 
+                const row = globalData.stats[i];
+                if (!row || !row.name || row.name.trim() === "") continue; // 跳過空白或無名稱的列
+            
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-white/20 transition-colors";
                 tr.innerHTML = `
-                    <td class="p-4 font-bold text-gray-700">${row.name || "---"}</td>
+                    <td class="p-4 font-bold text-gray-700">${row.name}</td>
                     <td class="p-4 text-center">${row.qty || 0}</td>
                     <td class="p-4 text-right font-mono">$${row.total || 0}</td>
                 `;
                 tableBody.appendChild(tr);
             }
             
-            // 總計改從第 20 行抓取
-            document.getElementById('total-qty').innerText = globalData.stats[20]?.qty || 0;
-            document.getElementById('total-sum').innerText = `$ ${globalData.stats[20]?.total || 0}`;
+            // 🚀 關鍵修改：抓取第 20 行作為總計
+            const summaryRow = globalData.stats[20] || { qty: 0, total: 0 };
+            document.getElementById('total-qty').innerText = summaryRow.qty;
+            document.getElementById('total-sum').innerText = `$ ${summaryRow.total}`;
         
             // 4. 更新系統狀態標籤與鎖定邏輯
             const todayDate = new Date();
@@ -657,14 +660,15 @@
         
             const stats = Array.isArray(globalData.stats) ? globalData.stats : [];
         
-            // 1. 過濾出 1-19 行的品項 (slice 是左閉右開，所以填 1, 20)
-            const foodStats = stats.slice(1, 20); 
+            // 只抓取 1 到 14 行 (15行之後可能是空白或 total 行)
+            const foodStats = stats.slice(1, 15); 
         
-            // 2. 尋找總計資料 (優先找第 20 行，若找不到則搜尋名稱含「總」字的人)
-            const summary = globalData.stats[20] || stats.find(s => s && s.name && s.name.includes("total (不含飲料)")) || { qty: 0, total: 0 };
+            // 直接指定第 20 行為總結資料
+            const summary = stats[20] || { qty: 0, total: 0 };
         
             foodStats.forEach(row => {
-                if (!row || !row.name) return; // 沒名稱的空白列跳過
+                if (!row || !row.name || row.name.includes("---")) return; 
+                
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-white/20 transition-colors";
                 tr.innerHTML = `
