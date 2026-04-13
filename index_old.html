@@ -661,7 +661,7 @@
             const foodStats = stats.slice(1, 20); 
         
             // 2. 尋找總計資料 (優先找第 20 行，若找不到則搜尋名稱含「總」字的人)
-            const summary = globalData.stats[20] || stats.find(s => s && s.name && s.name.includes("總")) || { qty: 0, total: 0 };
+            const summary = globalData.stats[20] || stats.find(s => s && s.name && s.name.includes("total (不含飲料)")) || { qty: 0, total: 0 };
         
             foodStats.forEach(row => {
                 if (!row || !row.name) return; // 沒名稱的空白列跳過
