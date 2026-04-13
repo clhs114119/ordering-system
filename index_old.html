@@ -573,8 +573,8 @@
                 tableBody.appendChild(tr);
             }
             
-            // 🚀 關鍵修改：抓取第 20 行作為總計
-            const summaryRow = globalData.stats[20] || { qty: 0, total: 0 };
+            // renderBaseUI 尾端修改
+            const summaryRow = globalData.stats.find(s => s && s.name && s.name.includes("total")) || { qty: 0, total: 0 };
             document.getElementById('total-qty').innerText = summaryRow.qty;
             document.getElementById('total-sum').innerText = `$ ${summaryRow.total}`;
         
@@ -658,29 +658,47 @@
             if (!tableBody) return;
             tableBody.innerHTML = "";
         
+            // 確保 stats 存在且是一個陣列
             const stats = Array.isArray(globalData.stats) ? globalData.stats : [];
         
-            // 只抓取 1 到 14 行 (15行之後可能是空白或 total 行)
-            const foodStats = stats.slice(1, 15); 
+            // 1. 🔍 自動尋找「總計列」：搜尋名稱包含 "total" 或 "總計" 的物件
+            // 這樣就算你在 Excel 挪動行數，程式也能精準抓到，不會顯示為 0
+            const summary = stats.find(s => 
+                s && s.name && (
+                    s.name.toLowerCase().includes("total") || 
+                    s.name.includes("總計") || 
+                    s.name.includes("總結")
+                )
+            ) || { qty: 0, total: 0 };
         
-            // 直接指定第 20 行為總結資料
-            const summary = stats[20] || { qty: 0, total: 0 };
+            // 2. 🍔 過濾出「餐點品項」：只抓取索引 1 到 19 行，且排除空白列與總計列
+            // stats.slice(1, 20) 代表抓取索引 1 號到 19 號的資料
+            const foodStats = stats.slice(1, 20).filter(row => 
+                row && 
+                row.name && 
+                row.name.trim() !== "" && 
+                !row.name.includes("---") &&
+                row !== summary // 避免總計重複出現在清單中
+            );
         
+            // 3. 渲染餐點清單
             foodStats.forEach(row => {
-                if (!row || !row.name || row.name.includes("---")) return; 
-                
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-white/20 transition-colors";
                 tr.innerHTML = `
                     <td class="p-4 font-bold text-gray-700">${row.name}</td>
-                    <td class="p-4 text-center">${row.qty}</td>
-                    <td class="p-4 text-right font-mono">$${row.total}</td>
+                    <td class="p-4 text-center">${row.qty || 0}</td>
+                    <td class="p-4 text-right font-mono">$${row.total || 0}</td>
                 `;
                 tableBody.appendChild(tr);
             });
         
-            document.getElementById('total-qty').innerText = summary.qty;
-            document.getElementById('total-sum').innerText = `$ ${summary.total}`;
+            // 4. 更新底部的總計顯示 (對應 HTML 中的 ID)
+            const qtyElem = document.getElementById('total-qty');
+            const sumElem = document.getElementById('total-sum');
+            
+            if (qtyElem) qtyElem.innerText = summary.qty || 0;
+            if (sumElem) sumElem.innerText = `$ ${summary.total || 0}`;
         }
 
         function handleOrientation() {
