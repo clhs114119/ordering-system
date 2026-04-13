@@ -689,7 +689,14 @@
                 selectedItems.push(item);
                 div.className = "flex justify-between items-center p-4 border border-blue-400 bg-blue-500/40 rounded-2xl cursor-pointer shadow-inner transition-all";
             }
-            const total = selectedItems.reduce((s,i) => s + parseFloat(i.price.toString().replace(/[^0-9.]/g, '')) || 0);
+        
+            // ✨ 修正重點：確保 reduce 有初始值 0，並正確解析價格
+            const total = selectedItems.reduce((sum, i) => {
+                // 先將價格轉為字串，去掉非數字字元，再轉成浮點數
+                const price = parseFloat(i.price.toString().replace(/[^0-9.]/g, '')) || 0;
+                return sum + price;
+            }, 0); // <--- 這個 0 非常重要！沒有它，第一項會直接變成物件
+        
             document.getElementById('total-amount').innerText = `$ ${total}`;
             checkBalanceStatus(total);
         }
@@ -710,7 +717,7 @@
                 displayElement.classList.add('text-blue-700'); 
             }
         
-            const total = selectedItems.reduce((sum, i) => sum + parseFloat(i.price.toString().replace(/[^0-9.]/g, '')) || 0);
+            const total = selectedItems.reduce((sum, i) => sum + (parseFloat(i.price.toString().replace(/[^0-9.]/g, '')) || 0), 0);
             checkBalanceStatus(total); 
         }
         
