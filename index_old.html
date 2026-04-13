@@ -573,7 +573,7 @@
         
             // 4. 更新系統狀態標籤與鎖定邏輯
             const todayDate = new Date();
-            let isMenuUpdated = false;
+            isMenuUpdated = false;
             
             if (globalData.lastUpdated && Array.isArray(globalData.lastUpdated)) {
                 const sheetDateStr = String(globalData.lastUpdated[globalData.todayIndex] || "");
@@ -718,29 +718,34 @@
             const submitBtn = document.querySelector('button[onclick="sendOrder()"]');
             if (!submitBtn) return;
         
-            const s = document.getElementById('seat-select').value;
+            const seat = document.getElementById('seat-select').value;
             const isUnlocked = globalData.emergencyUnlocked === true;
         
+            // 1. 檢查鎖定狀態 (菜單未更新 且 沒有解鎖)
+            // 這裡讀取的是全域變數 isMenuUpdated
             if (!isMenuUpdated && !isUnlocked) {
                 submitBtn.classList.add('opacity-50', 'cursor-not-allowed', 'grayscale');
                 submitBtn.disabled = true;
-                submitBtn.innerHTML = `<span>目前鎖定訂餐 (菜單未更新或已過訂餐時間)</span>`;
+                submitBtn.innerHTML = `<span>目前鎖定訂餐 (今日菜單未更新)</span>`;
                 return;
             }
         
-            if (!s) {
+            // 2. 檢查是否選座號
+            if (!seat) {
                 submitBtn.classList.add('opacity-50', 'cursor-not-allowed', 'grayscale');
                 submitBtn.disabled = true;
                 submitBtn.innerHTML = `<span>請先選擇座號</span>`;
                 return;
             }
         
-            const balance = globalData.balances[s] || 0;
+            // 3. 檢查餘額
+            const balance = globalData.balances[seat] || 0;
             if (total > balance) {
                 submitBtn.classList.add('opacity-50', 'cursor-not-allowed', 'grayscale');
                 submitBtn.disabled = true;
                 submitBtn.innerHTML = `<span>餘額不足 (還差 $${total - balance})</span>`;
             } else {
+                // 4. 以上檢查皆通過，解除鎖定
                 submitBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'grayscale');
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = `<span>確認送出訂單</span>`;
