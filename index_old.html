@@ -553,11 +553,13 @@
                 `;
                 menuBox.appendChild(div);
             });
-        
-            // 3. 渲染今日統計表格
+
+            // --- 修改 renderBaseUI 內的第 3 點 ---
             const tableBody = document.getElementById('stats-table-body');
             tableBody.innerHTML = "";
-            for (let i = 1; i < 16; i++) {
+            
+            // 假設 1-19 行是食物品項
+            for (let i = 1; i < 20; i++) {
                 const row = globalData.stats[i] || { name: "", qty: 0, total: 0 };
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-white/20 transition-colors";
@@ -568,8 +570,10 @@
                 `;
                 tableBody.appendChild(tr);
             }
-            document.getElementById('total-qty').innerText = globalData.stats[16]?.qty || 0;
-            document.getElementById('total-sum').innerText = `$ ${globalData.stats[16]?.total || 0}`;
+            
+            // 總計改從第 20 行抓取
+            document.getElementById('total-qty').innerText = globalData.stats[20]?.qty || 0;
+            document.getElementById('total-sum').innerText = `$ ${globalData.stats[20]?.total || 0}`;
         
             // 4. 更新系統狀態標籤與鎖定邏輯
             const todayDate = new Date();
@@ -653,20 +657,20 @@
         
             const stats = Array.isArray(globalData.stats) ? globalData.stats : [];
         
-            // --- 修正：定義 foodStats，過濾掉非食物品項 (索引 1-15 為食物) ---
-            const foodStats = stats.slice(1, 16); 
+            // 1. 過濾出 1-19 行的品項 (slice 是左閉右開，所以填 1, 20)
+            const foodStats = stats.slice(1, 20); 
         
-            const summary = stats.find(s => s && s.name && (s.name.includes("總結") || s.name === "總計")) 
-                            || { qty: 0, total: 0 };
+            // 2. 尋找總計資料 (優先找第 20 行，若找不到則搜尋名稱含「總」字的人)
+            const summary = globalData.stats[20] || stats.find(s => s && s.name && s.name.includes("總")) || { qty: 0, total: 0 };
         
             foodStats.forEach(row => {
-                if (!row) return; // 安全檢查
+                if (!row || !row.name) return; // 沒名稱的空白列跳過
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-white/20 transition-colors";
                 tr.innerHTML = `
-                    <td class="p-4 font-bold text-gray-700">${row.name || "---"}</td>
-                    <td class="p-4 text-center">${row.qty || 0}</td>
-                    <td class="p-4 text-right font-mono">$${row.total || 0}</td>
+                    <td class="p-4 font-bold text-gray-700">${row.name}</td>
+                    <td class="p-4 text-center">${row.qty}</td>
+                    <td class="p-4 text-right font-mono">$${row.total}</td>
                 `;
                 tableBody.appendChild(tr);
             });
