@@ -553,15 +553,15 @@
                 `;
                 menuBox.appendChild(div);
             });
-
+        
             // 3. 渲染今日統計表格
             const tableBody = document.getElementById('stats-table-body');
             tableBody.innerHTML = "";
             
-            // 假設餐點只到第 14 筆（紅茶綠茶等），避免跑出下方的空白列
+            // 渲染餐點品項 (根據需求抓取 1-14 行)
             for (let i = 1; i < 15; i++) { 
                 const row = globalData.stats[i];
-                if (!row || !row.name || row.name.trim() === "") continue; // 跳過空白或無名稱的列
+                if (!row || !row.name || row.name.trim() === "") continue; 
             
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-white/20 transition-colors";
@@ -573,20 +573,20 @@
                 tableBody.appendChild(tr);
             }
             
-            // renderBaseUI 尾端修改
-            const summaryRow = globalData.stats.find(s => s && s.name && s.name.includes("total")) || { qty: 0, total: 0 };
+            // 總計列搜尋 (使用 find 確保精準抓取)
+            const summaryRow = globalData.stats.find(s => s && s.name && s.name.toLowerCase().includes("total")) || { qty: 0, total: 0 };
             document.getElementById('total-qty').innerText = summaryRow.qty;
             document.getElementById('total-sum').innerText = `$ ${summaryRow.total}`;
         
-            // 4. 更新系統狀態標籤與鎖定邏輯
+            // 4. 更新系統狀態標籤與鎖定邏輯 (加入 11:00 判斷)
             const todayDate = new Date();
-            isMenuUpdated = false;
+            const currentHour = todayDate.getHours();
+            isMenuUpdated = false; // 更新全域變數
             
             if (globalData.lastUpdated && Array.isArray(globalData.lastUpdated)) {
                 const sheetDateStr = String(globalData.lastUpdated[globalData.todayIndex] || "");
                 
                 if (sheetDateStr.trim() !== "") {
-                    // 正規化格式進行比對
                     const normalizedSheetDate = sheetDateStr
                         .replace(/\//g, '-')
                         .split('-')
@@ -598,7 +598,11 @@
                     const dd = String(todayDate.getDate()).padStart(2, '0');
                     const todayStr = `${yyyy}-${mm}-${dd}`;
                     
-                    isMenuUpdated = (normalizedSheetDate === todayStr);
+                    // 🚀 核心判斷：日期必須是今天，且時間必須在 11 點以前
+                    const isDateMatch = (normalizedSheetDate === todayStr);
+                    const isOnTime = (currentHour < 11);
+                    
+                    isMenuUpdated = (isDateMatch && isOnTime);
                 }
             }
             
@@ -611,30 +615,32 @@
                 tag.className = "mt-1 text-[8px] tracking-widest uppercase px-3 py-1 rounded-full bg-purple-500/70 text-white inline-block";
                 orderBtn.classList.remove('disabled-btn');
             } else {
-                // 修改處：在提示文字中加入顯示日期
-                tag.innerText = isMenuUpdated ? `今日菜單已更新` : `菜單未更新`;
-                
-                tag.className = isMenuUpdated 
-                    ? "mt-1 text-[8px] tracking-widest uppercase px-3 py-1 rounded-full bg-green-500/50 text-white inline-block"
-                    : "mt-1 text-[8px] tracking-widest uppercase px-3 py-1 rounded-full bg-orange-500/50 text-white inline-block";
-                
-                if (!isMenuUpdated) {
-                    orderBtn.classList.add('disabled-btn');
-                } else {
+                // 修改處：根據不符合的原因顯示不同文字
+                if (isMenuUpdated) {
+                    tag.innerText = "今日菜單已更新";
+                    tag.className = "mt-1 text-[8px] tracking-widest uppercase px-3 py-1 rounded-full bg-green-500/50 text-white inline-block";
                     orderBtn.classList.remove('disabled-btn');
+                } else {
+                    // 如果日期對但時間超過 11 點，顯示時間錯誤；否則顯示菜單未更新
+                    if (currentHour >= 11) {
+                        tag.innerText = "已過 11:00 訂餐限制";
+                        tag.className = "mt-1 text-[8px] tracking-widest uppercase px-3 py-1 rounded-full bg-red-500/50 text-white inline-block";
+                    } else {
+                        tag.innerText = "今日菜單未更新";
+                        tag.className = "mt-1 text-[8px] tracking-widest uppercase px-3 py-1 rounded-full bg-orange-500/50 text-white inline-block";
+                    }
+                    orderBtn.classList.add('disabled-btn');
                 }
             }
         
-            // 5. 初始化管理員「單日價格」修改區塊 (自動產生星期與日期)
+            // 5. 初始化管理員相關
             const dateSelect = document.getElementById('price-date-select');
             if (dateSelect) {
                 const daysStr = ['星期一', '星期二', '星期三', '星期四', '星期五', '星期六', '星期日'];
                 const currentDayIdx = todayDate.getDay() === 0 ? 6 : todayDate.getDay() - 1;
-                
-                // 找出本週一的日期基準
                 const monday = new Date(todayDate);
                 monday.setDate(todayDate.getDate() - currentDayIdx);
-
+        
                 dateSelect.innerHTML = daysStr.map((d, i) => {
                     const date = new Date(monday);
                     date.setDate(monday.getDate() + i);
@@ -644,12 +650,11 @@
                     const selected = (i === globalData.todayIndex) ? "selected" : "";
                     return `<option value="${i}" ${selected}>${d} - ${month}/${day}${isToday}</option>`;
                 }).join('');
-
-                // 首次自動渲染選取的那一天的價格欄位
+        
                 renderSingleDayMenuEdit();
             }
         
-            // 6. 初始化按鈕狀態
+            // 6. 初始化按鈕狀態 (帶入目前的總額，初始為 0)
             checkBalanceStatus(0); 
         }
 
